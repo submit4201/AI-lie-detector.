@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
+import { ResponsiveContainer, RadialBarChart, RadialBar, PolarAngleAxis, Text } from 'recharts';
 
 const MetricCard = ({ title, value, unit, description, color = "blue", comparison }) => (
   <div className={`bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-${color}-400/30`}>
@@ -211,6 +212,53 @@ const ConfidenceAnalysisCard = ({ linguisticAnalysis }) => {
   );
 };
 
+const ScoreChart = ({ score, name, color, textColor, unit = "/100" }) => {
+  const chartData = [{ name: name, value: score || 0, fill: color }];
+  const percentage = score || 0;
+
+  return (
+    <div style={{ width: '100%', height: 150 }}> {/* Ensure height is sufficient */}
+      <ResponsiveContainer>
+        <RadialBarChart
+          cx="50%"
+          cy="70%" // Adjust to make space for title if needed, or keep centered
+          innerRadius="60%"
+          outerRadius="100%"
+          barSize={12}
+          data={chartData}
+          startAngle={180}
+          endAngle={0}
+        >
+          <PolarAngleAxis
+            type="number"
+            domain={[0, 100]}
+            angleAxisId={0}
+            tick={false}
+          />
+          <RadialBar
+            background={{ fill: '#333' }} // Darker background for the track
+            dataKey="value"
+            cornerRadius={6}
+            angleAxisId={0}
+          />
+          {/* Custom label to display the score in the center */}
+          <Text
+            x="50%"
+            y="70%" // Adjust y to be in the center of the semi-circle
+            textAnchor="middle"
+            dominantBaseline="middle"
+            className="fill-current font-bold text-xl"
+            style={{ fill: textColor }} // Use textColor prop for dynamic color
+          >
+            {`${percentage.toFixed(1)}${unit}`}
+          </Text>
+        </RadialBarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
+
 const ComplexityAnalysisCard = ({ linguisticAnalysis }) => {
   if (!linguisticAnalysis) return null;
 
@@ -221,49 +269,39 @@ const ComplexityAnalysisCard = ({ linguisticAnalysis }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Formality Score */}
-          <div className="bg-black/20 backdrop-blur-sm p-4 rounded-lg border border-purple-400/30">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-purple-300 font-medium">Formality Score</span>
-              <span className="text-purple-200 font-bold text-lg">
-                {linguisticAnalysis.formality_score?.toFixed(1)}/100
-              </span>
-            </div>
-            <div className="w-full bg-white/20 rounded-full h-3 mb-2">
-              <div
-                className="h-3 rounded-full bg-gradient-to-r from-purple-600 to-purple-400"
-                style={{width: `${linguisticAnalysis.formality_score || 0}%`}}
-              ></div>
-            </div>
-            <div className="text-xs text-gray-400">
+          <div className="bg-black/20 backdrop-blur-sm p-4 rounded-lg border border-purple-400/30 flex flex-col">
+            <span className="text-purple-300 font-medium text-center mb-2">Formality Score</span>
+            <ScoreChart
+              score={linguisticAnalysis.formality_score}
+              name="Formality"
+              color="#a855f7" // Purple-500
+              textColor="#c084fc" // Purple-400
+            />
+            <div className="text-xs text-gray-400 text-center mt-2">
               {linguisticAnalysis.formality_score > 70 ? "Formal language usage" :
                linguisticAnalysis.formality_score > 40 ? "Moderate formality" :
                "Informal language usage"}
             </div>
-            <div className="text-xs text-gray-400 mt-1">
+            <div className="text-xs text-gray-400 mt-1 text-center">
               Based on formal terms, politeness markers, and professional language
             </div>
           </div>
 
           {/* Complexity Score */}
-          <div className="bg-black/20 backdrop-blur-sm p-4 rounded-lg border border-indigo-400/30">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-indigo-300 font-medium">Complexity Score</span>
-              <span className="text-indigo-200 font-bold text-lg">
-                {linguisticAnalysis.complexity_score?.toFixed(1)}/100
-              </span>
-            </div>
-            <div className="w-full bg-white/20 rounded-full h-3 mb-2">
-              <div
-                className="h-3 rounded-full bg-gradient-to-r from-indigo-600 to-indigo-400"
-                style={{width: `${linguisticAnalysis.complexity_score || 0}%`}}
-              ></div>
-            </div>
-            <div className="text-xs text-gray-400">
+          <div className="bg-black/20 backdrop-blur-sm p-4 rounded-lg border border-indigo-400/30 flex flex-col">
+            <span className="text-indigo-300 font-medium text-center mb-2">Complexity Score</span>
+            <ScoreChart
+              score={linguisticAnalysis.complexity_score}
+              name="Complexity"
+              color="#6366f1" // Indigo-500
+              textColor="#818cf8" // Indigo-400
+            />
+            <div className="text-xs text-gray-400 text-center mt-2">
               {linguisticAnalysis.complexity_score > 70 ? "High linguistic complexity" :
                linguisticAnalysis.complexity_score > 40 ? "Moderate complexity" :
                "Simple language structure"}
             </div>
-            <div className="text-xs text-gray-400 mt-1">
+            <div className="text-xs text-gray-400 mt-1 text-center">
               Based on vocabulary sophistication, sentence structure, and word variety
             </div>
           </div>

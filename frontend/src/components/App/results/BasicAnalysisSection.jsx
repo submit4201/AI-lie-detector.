@@ -1,5 +1,11 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const DeceptionIndicatorsCard = ({ deceptionFlags }) => (
   <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl h-fit">
@@ -49,9 +55,9 @@ const ConfidenceScoresCard = ({ confidenceScores }) => (
 );
 
 const BehavioralAnalysisCard = ({ result }) => (
-  <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl h-fit">
-    <CardContent className="p-6">
-      <h3 className="text-xl font-semibold text-white mb-4">🧠 Behavioral Analysis</h3>
+  <Card className="bg-transparent shadow-none border-none rounded-none">
+    <CardContent className="p-0">
+      {/* h3 is now AccordionTrigger, content is here */}
       <div className="bg-black/30 backdrop-blur-sm border border-white/20 rounded-lg p-4">
         <div className="space-y-4">
           {/* Speech Patterns Summary */}
@@ -174,9 +180,9 @@ const BehavioralAnalysisCard = ({ result }) => (
 );
 
 const KeyFindingsCard = ({ result }) => (
-  <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl h-fit">
-    <CardContent className="p-6">
-      <h3 className="text-xl font-semibold text-white mb-4">🔍 Key Findings</h3>
+  <Card className="bg-transparent shadow-none border-none rounded-none">
+    <CardContent className="p-0">
+      {/* h3 is now AccordionTrigger, content is here */}
       <div className="bg-black/30 backdrop-blur-sm border border-white/20 rounded-lg p-4">
         <div className="space-y-3">
           {/* Strengths */}
@@ -210,15 +216,38 @@ const KeyFindingsCard = ({ result }) => (
 
 const BasicAnalysisSection = ({ result }) => {
   if (!result) return null;
+
+  const defaultOpenValues = ["item-behavioral-analysis", "item-key-findings"];
+
   return (
     <div className="space-y-6 h-fit">
-      {/* Behavioral Analysis */}
-      <BehavioralAnalysisCard result={result} />
+      <Accordion type="multiple" defaultValue={defaultOpenValues} className="space-y-4">
+        {/* Behavioral Analysis */}
+        {result && ( // Assuming result is always present if this section is rendered
+          <AccordionItem value="item-behavioral-analysis" className="bg-white/5 backdrop-blur-md border-white/10 shadow-lg rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
+            <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline p-6 data-[state=open]:border-b data-[state=open]:border-white/20">
+              🧠 Behavioral Analysis
+            </AccordionTrigger>
+            <AccordionContent className="p-6 pt-4">
+              <BehavioralAnalysisCard result={result} />
+            </AccordionContent>
+          </AccordionItem>
+        )}
 
-      {/* Key Findings */}
-      <KeyFindingsCard result={result} />
+        {/* Key Findings */}
+        {result && (
+          <AccordionItem value="item-key-findings" className="bg-white/5 backdrop-blur-md border-white/10 shadow-lg rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
+            <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline p-6 data-[state=open]:border-b data-[state=open]:border-white/20">
+              🔍 Key Findings
+            </AccordionTrigger>
+            <AccordionContent className="p-6 pt-4">
+              <KeyFindingsCard result={result} />
+            </AccordionContent>
+          </AccordionItem>
+        )}
+      </Accordion>
 
-      {/* Confidence Scores if available */}
+      {/* Confidence Scores if available (remains outside accordion) */}
       {result.advanced_analysis?.confidence_scores && (
         <ConfidenceScoresCard confidenceScores={result.advanced_analysis.confidence_scores} />
       )}
