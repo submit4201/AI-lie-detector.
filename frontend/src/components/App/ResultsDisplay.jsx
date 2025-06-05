@@ -1,9 +1,11 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BasicAnalysisSection from './results/BasicAnalysisSection';
 import AIDeepAnalysisSection from './results/AIDeepAnalysisSection';
 import QuantitativeMetricsSection from './results/QuantitativeMetricsSection';
 import SessionInsightsSection from './results/SessionInsightsSection';
+import KeyHighlightsSection from './results/KeyHighlightsSection';
 
 const ResultsDisplay = ({ result, parseGeminiAnalysis, getCredibilityColor, getCredibilityLabel, formatConfidenceLevel, sessionHistory }) => {
   if (!result) {
@@ -26,7 +28,15 @@ const ResultsDisplay = ({ result, parseGeminiAnalysis, getCredibilityColor, getC
             </div>
           </CardContent>
         </Card>
-      )}      {/* 2. Top Three Key Metric Cards - Same Height */}
+      )}
+      {/* NEW: Key Highlights Section */}
+      <KeyHighlightsSection
+        result={result}
+        getCredibilityColor={getCredibilityColor}
+        getCredibilityLabel={getCredibilityLabel}
+      />
+
+      {/* 2. Top Three Key Metric Cards - Same Height */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Credibility Score Card */}
         {result.credibility_score !== undefined && (
@@ -37,24 +47,23 @@ const ResultsDisplay = ({ result, parseGeminiAnalysis, getCredibilityColor, getC
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-white font-semibold text-lg">Overall Score</span>
                   <span
-                    className="text-3xl font-bold"
-                    style={{ color: getCredibilityColor(result.credibility_score / 100) }}
+                    className={`text-3xl font-bold ${getCredibilityColor(result.credibility_score / 100)}`}
                   >
                     {result.credibility_score}/100
                   </span>
                 </div>
                 <div className="w-full bg-white/20 rounded-full h-3 mb-3">
                   <div
-                    className="h-3 rounded-full transition-all duration-1000"
+                    className={`h-3 rounded-full transition-all duration-1000 ${
+                      getCredibilityColor(result.credibility_score / 100).replace('text-', 'bg-')
+                    }`}
                     style={{
                       width: `${result.credibility_score}%`,
-                      background: `linear-gradient(90deg, ${getCredibilityColor(result.credibility_score / 100)}, ${getCredibilityColor(result.credibility_score / 100)}88)`
                     }}
                   ></div>
                 </div>
                 <p
-                  className="text-center font-semibold text-lg"
-                  style={{ color: getCredibilityColor(result.credibility_score / 100) }}
+                  className={`text-center font-semibold text-lg ${getCredibilityColor(result.credibility_score / 100)}`}
                 >
                   {getCredibilityLabel(result.credibility_score / 100)}
                 </p>
@@ -115,24 +124,33 @@ const ResultsDisplay = ({ result, parseGeminiAnalysis, getCredibilityColor, getC
         )}
       </div>
 
-      {/* 3. Quantitative Metrics Section (NEW) */}
-      <QuantitativeMetricsSection result={result} />
+      {/* Tabbed Interface for Analysis Sections */}
+      <Tabs defaultValue="basic-analysis" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 bg-white/10 backdrop-blur-md border-white/20 shadow-xl rounded-lg">
+          <TabsTrigger value="basic-analysis" className="text-white data-[state=active]:bg-black/30 data-[state=active]:text-blue-400">Basic Analysis</TabsTrigger>
+          <TabsTrigger value="ai-deep-analysis" className="text-white data-[state=active]:bg-black/30 data-[state=active]:text-purple-400">AI Deep Analysis</TabsTrigger>
+          <TabsTrigger value="quantitative-metrics" className="text-white data-[state=active]:bg-black/30 data-[state=active]:text-green-400">Quantitative Metrics</TabsTrigger>
+        </TabsList>
+        <TabsContent value="basic-analysis">
+          <BasicAnalysisSection result={result} />
+        </TabsContent>
+        <TabsContent value="ai-deep-analysis">
+          <AIDeepAnalysisSection
+            result={result}
+            parseGeminiAnalysis={parseGeminiAnalysis}
+            getCredibilityColor={getCredibilityColor}
+            getCredibilityLabel={getCredibilityLabel}
+            formatConfidenceLevel={formatConfidenceLevel}
+            sessionHistory={sessionHistory}
+          />
+        </TabsContent>
+        <TabsContent value="quantitative-metrics">
+          <QuantitativeMetricsSection result={result} />
+        </TabsContent>
+      </Tabs>
 
-      {/* 4. Session Insights Section (NEW) */}
+      {/* Session Insights Section (Remains Separate) */}
       <SessionInsightsSection result={result} sessionHistory={sessionHistory} />
-
-      {/* 5. Basic Analysis Section */}
-      <BasicAnalysisSection result={result} />
-
-      {/* 6. AI Deep Analysis Section */}
-      <AIDeepAnalysisSection
-        result={result}
-        parseGeminiAnalysis={parseGeminiAnalysis}
-        getCredibilityColor={getCredibilityColor}
-        getCredibilityLabel={getCredibilityLabel}
-        formatConfidenceLevel={formatConfidenceLevel}
-        sessionHistory={sessionHistory}
-      />
     </div>
   );
 };

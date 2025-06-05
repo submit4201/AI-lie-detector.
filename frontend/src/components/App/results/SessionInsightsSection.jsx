@@ -278,8 +278,8 @@ const SessionInsightsSection = ({ result, sessionHistory }) => {
                             <div className="bg-gray-700 rounded-t h-full relative overflow-hidden">
                               <div 
                                 className={`absolute bottom-0 w-full rounded-t transition-all duration-700 ${
-                                  score > 70 ? 'bg-gradient-to-t from-green-500 to-green-400' : 
-                                  score > 40 ? 'bg-gradient-to-t from-yellow-500 to-yellow-400' : 
+                                  score >= 70 ? 'bg-gradient-to-t from-green-500 to-green-400' :
+                                  score >= 40 ? 'bg-gradient-to-t from-yellow-500 to-yellow-400' :
                                   'bg-gradient-to-t from-red-500 to-red-400'
                                 } group-hover:shadow-lg`}
                                 style={{ height: `${height}%` }}
@@ -318,13 +318,12 @@ const SessionInsightsSection = ({ result, sessionHistory }) => {
                               {index + 1}
                             </div>
                             <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              risk === 'High' ? 'bg-red-500/20 text-red-300' :
-                              risk === 'Medium-High' ? 'bg-orange-500/20 text-orange-300' :
-                              risk === 'Medium' ? 'bg-yellow-500/20 text-yellow-300' :
-                              risk === 'Low' ? 'bg-green-500/20 text-green-300' :
-                              'bg-gray-500/20 text-gray-300'
+                              risk === 'high' ? 'bg-red-500/20 text-red-300' :
+                              risk === 'medium' ? 'bg-yellow-500/20 text-yellow-300' :
+                              risk === 'low' ? 'bg-green-500/20 text-green-300' :
+                              'bg-gray-500/20 text-gray-300' // Default for 'unknown' or other values
                             }`}>
-                              {risk || 'Unknown'}
+                              {(risk && risk.charAt(0).toUpperCase() + risk.slice(1)) || 'Unknown'}
                             </div>
                           </div>
                         ))}
@@ -374,8 +373,8 @@ const SessionInsightsSection = ({ result, sessionHistory }) => {
                         <div className="flex space-x-4">
                           {/* Timeline indicator */}
                           <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold relative z-10 ${
-                            item.analysis?.credibility_score > 70 ? 'bg-gradient-to-r from-green-500 to-green-600' :
-                            item.analysis?.credibility_score > 40 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                            item.analysis?.credibility_score >= 70 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                            item.analysis?.credibility_score >= 40 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
                             'bg-gradient-to-r from-red-500 to-red-600'
                           }`}>
                             {index + 1}
@@ -392,19 +391,20 @@ const SessionInsightsSection = ({ result, sessionHistory }) => {
                               </div>
                               <div className="flex space-x-2">
                                 <div className={`px-2 py-1 rounded text-xs font-medium ${
-                                  item.analysis?.credibility_score > 70 ? 'bg-green-500/20 text-green-300' :
-                                  item.analysis?.credibility_score > 40 ? 'bg-yellow-500/20 text-yellow-300' :
+                                  item.analysis?.credibility_score >= 70 ? 'bg-green-500/20 text-green-300' :
+                                  item.analysis?.credibility_score >= 40 ? 'bg-yellow-500/20 text-yellow-300' :
                                   'bg-red-500/20 text-red-300'
                                 }`}>
                                   {item.analysis?.credibility_score || 'N/A'}% credible
                                 </div>
                                 {item.analysis?.overall_risk && (
                                   <div className={`px-2 py-1 rounded text-xs font-medium ${
-                                    item.analysis.overall_risk === 'High' ? 'bg-red-500/20 text-red-300' :
-                                    item.analysis.overall_risk === 'Medium' ? 'bg-yellow-500/20 text-yellow-300' :
-                                    'bg-green-500/20 text-green-300'
+                                    item.analysis.overall_risk === 'high' ? 'bg-red-500/20 text-red-300' :
+                                    item.analysis.overall_risk === 'medium' ? 'bg-yellow-500/20 text-yellow-300' :
+                                    item.analysis.overall_risk === 'low' ? 'bg-green-500/20 text-green-300' :
+                                    'bg-gray-500/20 text-gray-300' // Default for unknown
                                   }`}>
-                                    {item.analysis.overall_risk} risk
+                                    {item.analysis.overall_risk.charAt(0).toUpperCase() + item.analysis.overall_risk.slice(1)} risk
                                   </div>
                                 )}
                               </div>

@@ -3,16 +3,16 @@ import { useState, useCallback } from 'react';
 // Helper functions (originally in App.jsx)
 export const getCredibilityColor = (level) => {
   if (level === null || level === undefined) return "text-gray-500"; // Default or loading
-  if (level < 0.3) return "text-red-500"; // Low credibility
-  if (level < 0.7) return "text-yellow-500"; // Medium credibility
-  return "text-green-500"; // High credibility
+  if (level < 0.4) return "text-red-500"; // Scores 0-39
+  if (level < 0.7) return "text-yellow-500"; // Scores 40-69
+  return "text-green-500"; // Scores 70-100
 };
 
 export const getCredibilityLabel = (level) => {
   if (level === null || level === undefined) return "N/A";
-  if (level < 0.3) return "Low Credibility";
-  if (level < 0.7) return "Medium Credibility";
-  return "High Credibility";
+  if (level < 0.4) return "High Risk / Low Credibility";    // Scores 0-39
+  if (level < 0.7) return "Medium Risk / Moderate Credibility"; // Scores 40-69
+  return "Low Risk / High Credibility";     // Scores 70-100
 };
 
 export const parseGeminiAnalysis = (analysisText) => {
