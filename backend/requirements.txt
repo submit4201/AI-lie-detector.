@@ -1,13 +1,13 @@
-fastapi
+fastapi==0.95.2
 #python-multipart
-SpeechRecognition
-pydub
-transformers
-torch
-torchaudio
-requests
-google-generativeai
+SpeechRecognition==3.8.1
+pydub==0.25.1
+transformers==4.33.3
+torch==2.0.1
+torchaudio==2.0.2
+requests==2.31.0
+google-generativeai==0.2.0
 # Testing dependencies
-pytest
-pytest-asyncio
-pytest-mock
+pytest==7.4.0
+pytest-asyncio==0.21.0
+pytest-mock==3.11.1
