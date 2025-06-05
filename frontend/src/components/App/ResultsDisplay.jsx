@@ -127,9 +127,24 @@ const ResultsDisplay = ({ result, parseGeminiAnalysis, getCredibilityColor, getC
       {/* Tabbed Interface for Analysis Sections */}
       <Tabs defaultValue="basic-analysis" className="w-full">
         <TabsList className="grid w-full grid-cols-3 bg-white/10 backdrop-blur-md border-white/20 shadow-xl rounded-lg">
-          <TabsTrigger value="basic-analysis" className="text-white data-[state=active]:bg-black/30 data-[state=active]:text-blue-400">Basic Analysis</TabsTrigger>
-          <TabsTrigger value="ai-deep-analysis" className="text-white data-[state=active]:bg-black/30 data-[state=active]:text-purple-400">AI Deep Analysis</TabsTrigger>
-          <TabsTrigger value="quantitative-metrics" className="text-white data-[state=active]:bg-black/30 data-[state=active]:text-green-400">Quantitative Metrics</TabsTrigger>
+          <TabsTrigger
+            value="basic-analysis"
+            className="text-gray-300 hover:bg-slate-700/50 hover:text-gray-100 rounded-md transition-all duration-300 data-[state=active]:bg-blue-600/20 data-[state=active]:backdrop-blur-sm data-[state=active]:text-blue-300 data-[state=active]:border-b-2 data-[state=active]:border-blue-400"
+          >
+            Basic Analysis
+          </TabsTrigger>
+          <TabsTrigger
+            value="ai-deep-analysis"
+            className="text-gray-300 hover:bg-slate-700/50 hover:text-gray-100 rounded-md transition-all duration-300 data-[state=active]:bg-blue-600/20 data-[state=active]:backdrop-blur-sm data-[state=active]:text-blue-300 data-[state=active]:border-b-2 data-[state=active]:border-blue-400"
+          >
+            AI Deep Analysis
+          </TabsTrigger>
+          <TabsTrigger
+            value="quantitative-metrics"
+            className="text-gray-300 hover:bg-slate-700/50 hover:text-gray-100 rounded-md transition-all duration-300 data-[state=active]:bg-blue-600/20 data-[state=active]:backdrop-blur-sm data-[state=active]:text-blue-300 data-[state=active]:border-b-2 data-[state=active]:border-blue-400"
+          >
+            Quantitative Metrics
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="basic-analysis">
           <BasicAnalysisSection result={result} />
