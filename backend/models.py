@@ -52,6 +52,30 @@ class RiskAssessment(BaseModel):
     risk_factors: List[str] = Field(..., description="Specific risk factors identified.")
     mitigation_suggestions: List[str] = Field(..., description="Suggestions to mitigate identified risks.")
 
+# New Models for Enhanced Analysis Dimensions
+class ManipulationAssessment(BaseModel):
+    manipulation_score: int = Field(default=0, ge=0, le=100, description="Likelihood of manipulative language (0-100).")
+    manipulation_tactics: List[str] = Field(default=[], description="Identified manipulative tactics (e.g., gaslighting, guilt-tripping).")
+    manipulation_explanation: str = Field(default="N/A", description="Explanation of manipulative tactics used.")
+    example_phrases: List[str] = Field(default=[], description="Specific phrases indicating manipulation.")
+
+class ArgumentAnalysis(BaseModel):
+    argument_strengths: List[str] = Field(default=[], description="Speaker's strong points in their arguments.")
+    argument_weaknesses: List[str] = Field(default=[], description="Speaker's weak points in their arguments.")
+    overall_argument_coherence_score: int = Field(default=0, ge=0, le=100, description="Overall coherence of the arguments (0-100).")
+
+class SpeakerAttitude(BaseModel):
+    respect_level_score: int = Field(default=50, ge=0, le=100, description="Level of respectfulness in speaker's tone (0-100, high is respectful).")
+    sarcasm_detected: bool = Field(default=False, description="Indicates if sarcasm was detected.")
+    sarcasm_confidence_score: int = Field(default=0, ge=0, le=100, description="Confidence in sarcasm detection (0-100, if sarcasm_detected is true).")
+    tone_indicators_respect_sarcasm: List[str] = Field(default=[], description="Words or phrases indicating respect or sarcasm.")
+
+class EnhancedUnderstanding(BaseModel):
+    key_inconsistencies: List[str] = Field(default=[], description="List of key contradictions or inconsistencies in statements.")
+    areas_of_evasiveness: List[str] = Field(default=[], description="Topics or questions the speaker seemed to avoid.")
+    suggested_follow_up_questions: List[str] = Field(default=[], description="Suggested questions to ask for clarity or further probing.")
+    unverified_claims: List[str] = Field(default=[], description="Claims made by the speaker that may require fact-checking.")
+
 class SessionInsights(BaseModel):
     consistency_analysis: str
     behavioral_evolution: str
@@ -72,6 +96,11 @@ class AnalyzeResponse(BaseModel):
     linguistic_analysis: LinguisticAnalysis = Field(..., description="Analysis of linguistic patterns.")
     risk_assessment: RiskAssessment = Field(..., description="Risk assessment details.")
     session_insights: Optional[SessionInsights] = Field(None, description="Insights based on conversation history within the session.")
+    # Adding new optional analysis dimension fields
+    manipulation_assessment: Optional[ManipulationAssessment] = Field(None, description="Assessment of manipulative language and tactics.")
+    argument_analysis: Optional[ArgumentAnalysis] = Field(None, description="Analysis of argument strength, weaknesses, and coherence.")
+    speaker_attitude: Optional[SpeakerAttitude] = Field(None, description="Evaluation of speaker's attitude, including respect and sarcasm.")
+    enhanced_understanding: Optional[EnhancedUnderstanding] = Field(None, description="Deeper insights like inconsistencies, evasiveness, and follow-up questions.")
 
 class NewSessionResponse(BaseModel):
     session_id: str = Field(..., description="Unique identifier for the newly created session.")

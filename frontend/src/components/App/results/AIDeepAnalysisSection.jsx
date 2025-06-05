@@ -6,6 +6,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import ManipulationAssessmentCard from './ManipulationAssessmentCard';
+import ArgumentAnalysisCard from './ArgumentAnalysisCard';
+import SpeakerAttitudeCard from './SpeakerAttitudeCard';
+import EnhancedUnderstandingCard from './EnhancedUnderstandingCard';
 
 // Individual card components for AI Deep Analysis
 // These are kept as they are, and will be wrapped by Accordion items.
@@ -266,7 +270,16 @@ const AIDeepAnalysisSection = ({ result, parseGeminiAnalysis, getCredibilityColo
     );
   }
 
-  const defaultOpenValues = ["item-gemini-summary", "item-linguistic-analysis", "item-speaker-specific", "item-recommendations"];
+  const defaultOpenValues = [
+    "item-gemini-summary",
+    "item-manipulation-assessment",
+    "item-argument-analysis",
+    "item-speaker-attitude",
+    "item-enhanced-understanding",
+    "item-linguistic-analysis",
+    "item-speaker-specific",
+    "item-recommendations"
+  ];
 
   return (
     <div className="space-y-6 h-fit">
@@ -283,6 +296,54 @@ const AIDeepAnalysisSection = ({ result, parseGeminiAnalysis, getCredibilityColo
             </AccordionTrigger>
             <AccordionContent className="p-6 pt-4">
               <GeminiSummaryCard summary={result.gemini_summary} />
+            </AccordionContent>
+          </AccordionItem>
+        )}
+
+        {/* Manipulation Assessment */}
+        {result.manipulation_assessment && (
+          <AccordionItem value="item-manipulation-assessment" className="bg-white/5 backdrop-blur-md border-white/10 shadow-lg rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
+            <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline p-6 data-[state=open]:border-b data-[state=open]:border-white/20">
+              🛡️ Manipulation Assessment
+            </AccordionTrigger>
+            <AccordionContent className="p-6 pt-4">
+              <ManipulationAssessmentCard assessment={result.manipulation_assessment} />
+            </AccordionContent>
+          </AccordionItem>
+        )}
+
+        {/* Argument Analysis */}
+        {result.argument_analysis && (
+          <AccordionItem value="item-argument-analysis" className="bg-white/5 backdrop-blur-md border-white/10 shadow-lg rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
+            <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline p-6 data-[state=open]:border-b data-[state=open]:border-white/20">
+              ⚖️ Argument Analysis
+            </AccordionTrigger>
+            <AccordionContent className="p-6 pt-4">
+              <ArgumentAnalysisCard analysis={result.argument_analysis} />
+            </AccordionContent>
+          </AccordionItem>
+        )}
+
+        {/* Speaker Attitude */}
+        {result.speaker_attitude && (
+          <AccordionItem value="item-speaker-attitude" className="bg-white/5 backdrop-blur-md border-white/10 shadow-lg rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
+            <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline p-6 data-[state=open]:border-b data-[state=open]:border-white/20">
+              🗣️ Speaker Attitude
+            </AccordionTrigger>
+            <AccordionContent className="p-6 pt-4">
+              <SpeakerAttitudeCard attitude={result.speaker_attitude} />
+            </AccordionContent>
+          </AccordionItem>
+        )}
+
+        {/* Enhanced Understanding */}
+        {result.enhanced_understanding && (
+          <AccordionItem value="item-enhanced-understanding" className="bg-white/5 backdrop-blur-md border-white/10 shadow-lg rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
+            <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline p-6 data-[state=open]:border-b data-[state=open]:border-white/20">
+              💡 Enhanced Understanding
+            </AccordionTrigger>
+            <AccordionContent className="p-6 pt-4">
+              <EnhancedUnderstandingCard understanding={result.enhanced_understanding} />
             </AccordionContent>
           </AccordionItem>
         )}
