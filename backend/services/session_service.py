@@ -99,9 +99,9 @@ class ConversationHistory:
         history_for_patterns = []
         for h_entry in session.get("history", []):
             reconstructed_analysis = {
-                "deception_flags": h_entry.get("analysis_summary",{}).get("deception_flags", []),
-                "emotion_analysis": [{"label": h_entry.get("analysis_summary",{}).get("top_emotion", "unknown"), "score": 1.0}] if h_entry.get("analysis_summary",{}).get("top_emotion") else [],
-                "gemini_analysis": {"credibility_score": h_entry.get("analysis_summary",{}).get("credibility_score")} if h_entry.get("analysis_summary",{}).get("credibility_score") is not None else {}
+                "deception_flags": h_entry.get("analysis", {}).get("deception_flags", []),
+                "emotion_analysis": [{"label": h_entry.get("analysis", {}).get("top_emotion", "unknown"), "score": 1.0}] if h_entry.get("analysis", {}).get("top_emotion") else [],
+                "gemini_analysis": {"credibility_score": h_entry.get("analysis", {}).get("credibility_score")} if h_entry.get("analysis", {}).get("credibility_score") is not None else {}
             }
             history_for_patterns.append({"analysis": reconstructed_analysis})
 
