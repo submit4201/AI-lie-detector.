@@ -58,9 +58,4 @@ EMOTION_CLASSIFIER_CONFIG = {
     "return_all_scores": True # As it was in main.py
 }
 
-EMOTION_CLASSIFIER = pipeline(
-    EMOTION_CLASSIFIER_CONFIG["pipeline_task"],
-    model=EMOTION_CLASSIFIER_CONFIG["model_name"],
-    top_k=EMOTION_CLASSIFIER_CONFIG["top_k"],
-    return_all_scores=EMOTION_CLASSIFIER_CONFIG["return_all_scores"]
-)
+# The emotion classifier pipeline is initialized in the try block above using EMOTION_CLASSIFIER_CONFIG.
