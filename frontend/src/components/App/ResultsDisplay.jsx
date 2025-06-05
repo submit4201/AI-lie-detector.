@@ -4,7 +4,7 @@ import React from 'react';
 import BasicAnalysisSection from './results/BasicAnalysisSection';
 import AIDeepAnalysisSection from './results/AIDeepAnalysisSection';
 
-const ResultsDisplay = ({ result, parseGeminiAnalysis, getCredibilityColor, getCredibilityLabel, sessionHistory }) => {
+const ResultsDisplay = ({ result, parseGeminiAnalysis, getCredibilityColor, getCredibilityLabel, formatConfidenceLevel, sessionHistory }) => {
   if (!result) {
     return null;
   }
@@ -17,6 +17,7 @@ const ResultsDisplay = ({ result, parseGeminiAnalysis, getCredibilityColor, getC
         parseGeminiAnalysis={parseGeminiAnalysis}
         getCredibilityColor={getCredibilityColor}
         getCredibilityLabel={getCredibilityLabel}
+        formatConfidenceLevel={formatConfidenceLevel}
         sessionHistory={sessionHistory}
       />
     </div>

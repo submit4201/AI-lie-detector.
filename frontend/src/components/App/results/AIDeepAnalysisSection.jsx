@@ -339,16 +339,29 @@ const DebugInfoCard = ({ metadata }) => (
 );
 
 
-const AIDeepAnalysisSection = ({ result, parseGeminiAnalysis, getCredibilityColor, getCredibilityLabel, sessionHistory }) => {
-  if (!result || !result.gemini_analysis) return null;
+// parseGeminiAnalysis is passed but likely not needed for top-level data anymore.
+// It could be used internally by a sub-card if a specific text field needs deep parsing.
+const AIDeepAnalysisSection = ({ result, parseGeminiAnalysis, getCredibilityColor, getCredibilityLabel, formatConfidenceLevel, sessionHistory }) => {
+  // result is the full AnalyzeResponse object from the backend.
+  if (!result) return null;
 
-  const geminiData = parseGeminiAnalysis(result.gemini_analysis);
+  // Error handling for Gemini can be based on a specific field or overall structure if necessary
+  // For example, if gemini_summary is crucial and missing, or contains an error message from service.
+  // The backend's validate_and_structure_gemini_response aims to always provide a structure.
 
-  if (!geminiData || geminiData.error) {
+  // Example: Check if core Gemini data is present, otherwise show an error or reduced view
+  if (!result.gemini_summary || !result.credibility_score === undefined) {
+     // This condition might need adjustment based on what's considered a "valid" minimal Gemini result
     return (
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-white mb-4">🤖 AI Deep Analysis</h2>
-        <AnalysisErrorCard geminiData={geminiData} />
+        <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl">
+          <CardContent className="p-6">
+            <h3 className="text-xl font-semibold text-white mb-4">⚠️ Analysis Incomplete</h3>
+            <p className="text-gray-300">Detailed AI analysis data is missing or incomplete.</p>
+            {/* Optionally, show result.error if the backend populates such a field */}
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -357,30 +370,41 @@ const AIDeepAnalysisSection = ({ result, parseGeminiAnalysis, getCredibilityColo
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-white mb-4">🤖 AI Deep Analysis</h2>
 
-      {geminiData.credibility_score !== undefined && (
+      {result.credibility_score !== undefined && (
         <CredibilityScoreCard
-          score={geminiData.credibility_score}
-          getColor={getCredibilityColor}
-          getLabel={getCredibilityLabel}
+          score={result.credibility_score} // Direct from backend (0-100)
+          getColor={(score) => getCredibilityColor(score / 100)} // Scale to 0-1 for color/label helpers
+          getLabel={(score) => getCredibilityLabel(score / 100)} // Scale to 0-1 for color/label helpers
         />
       )}
 
-      {geminiData.gemini_summary && <GeminiSummaryCard summary={geminiData.gemini_summary} />}
+      {result.gemini_summary && <GeminiSummaryCard summary={result.gemini_summary} />}
 
-      {geminiData.session_insights && sessionHistory && sessionHistory.length > 0 && (
-        <SessionInsightsCard insights={geminiData.session_insights} />
+      {result.session_insights && sessionHistory && sessionHistory.length > 0 && (
+        <SessionInsightsCard insights={result.session_insights} />
       )}
 
-      {geminiData.linguistic_analysis && <LinguisticAnalysisCard analysis={geminiData.linguistic_analysis} />}
-      {geminiData.risk_assessment && <RiskAssessmentCard assessment={geminiData.risk_assessment} />}
-      {geminiData.confidence_level && <ConfidenceLevelCard level={geminiData.confidence_level} />}
+      {result.linguistic_analysis && <LinguisticAnalysisCard analysis={result.linguistic_analysis} />}
+      {result.risk_assessment && <RiskAssessmentCard assessment={result.risk_assessment} />}
 
-      {geminiData.red_flags_per_speaker && Object.keys(geminiData.red_flags_per_speaker).length > 0 && (
-        <SpeakerSpecificAnalysisCard analysis={geminiData.red_flags_per_speaker} />
+      {/* ConfidenceLevelCard expects the string value e.g. "high", "medium" */}
+      {/* The formatConfidenceLevel helper is for numeric 0-1 scores, not this string. */}
+      {/* So, we pass result.confidence_level directly if it's the string. */}
+      {/* If ConfidenceLevelCard expected numeric, then formatConfidenceLevel(numeric_confidence_score) would be used. */}
+      {/* Assuming ConfidenceLevelCard is designed for the string value from backend's AnalyzeResponse.confidence_level */}
+      {result.confidence_level && <ConfidenceLevelCard level={result.confidence_level} />}
+
+
+      {result.red_flags_per_speaker && Object.keys(result.red_flags_per_speaker).length > 0 && (
+        <SpeakerSpecificAnalysisCard analysis={result.red_flags_per_speaker} />
       )}
 
-      {geminiData.speaker_transcripts && <SpeakerTranscriptsCard transcripts={geminiData.speaker_transcripts} />}
-      {geminiData.recommendations && <RecommendationsCard recommendations={geminiData.recommendations} />}
+      {result.speaker_transcripts && <SpeakerTranscriptsCard transcripts={result.speaker_transcripts} />}
+      {result.recommendations && <RecommendationsCard recommendations={result.recommendations} />}
+
+      {/* Assuming result.metadata might exist - this was in the original JSX but not in AnalyzeResponse model */}
+      {/* If it's not part of AnalyzeResponse, this card won't render or will need different data */}
+      {/* For now, keeping it conditional as in original code. */}
       {result.metadata && <DebugInfoCard metadata={result.metadata} />}
     </div>
   );
