@@ -5,8 +5,9 @@ import speech_recognition as sr
 from transformers import pipeline
 import tempfile
 import os
-import requests
-import json
+# import requests # No longer needed for Gemini
+import google.generativeai as genai
+import json # Still needed for prompt construction and parsing Gemini's JSON output string
 import logging
 import time
 from datetime import datetime
@@ -252,14 +253,26 @@ app.add_middleware(
 emotion_classifier = pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base", top_k=7, return_all_scores=True)
 gemini_api_key = os.getenv("GEMINI_API_KEY", "AIzaSyB5KbPaVXPYkUeShTEE82fgpZiLiLl7YyM")  # fallback key
 
-def query_gemini(transcript, flags, session_id: str = None):
-    if not gemini_api_key:
-        return {"error": "Missing Gemini API key"}
+# Configure the Google GenAI SDK
+if gemini_api_key and gemini_api_key != "AIzaSyB5KbPaVXPYkUeShTEE82fgpZiLiLl7YyM": # Don't configure with placeholder
+    try:
+        genai.configure(api_key=gemini_api_key)
+        logger.info("Google GenAI SDK configured successfully.")
+    except Exception as e:
+        logger.error(f"Failed to configure Google GenAI SDK: {e}")
+else:
+    logger.warning("GEMINI_API_KEY not found or is placeholder. Google GenAI SDK not configured.")
+
+
+def query_gemini(transcript: str, flags: Dict[str, Any], session_id: Optional[str] = None) -> Dict[str, Any]:
+    if not gemini_api_key or gemini_api_key == "AIzaSyB5KbPaVXPYkUeShTEE82fgpZiLiLl7YyM" or not genai.API_KEY_CONFIGURED:
+        logger.error("Gemini API key not configured. Skipping Gemini query.")
+        return {"error": "Gemini API key not configured properly."}
 
     # Get session context for conversation continuity
     session_context = conversation_history.get_session_context(session_id) if session_id else {}
     
-    # Build enhanced prompt with conversation history
+    # Build enhanced prompt (remains largely the same)
     base_prompt = f"""
     Analyze the transcript for deception, stress, and speaker separation. 
 
@@ -270,7 +283,6 @@ def query_gemini(transcript, flags, session_id: str = None):
     {json.dumps(flags, indent=2)}
     """
     
-    # Add conversation context if available
     if session_context and session_context.get("previous_analyses", 0) > 0:
         context_prompt = f"""
         
@@ -337,83 +349,73 @@ def query_gemini(transcript, flags, session_id: str = None):
     - overall_risk must be: "low", "medium", "high"
     - All arrays must contain at least 1 meaningful item
     - All object fields must be present and non-empty
-    """# Correct Gemini API URL and authentication
-    gemini_api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_api_key}"
+    """
     
-    headers = {
-        "Content-Type": "application/json"
-    }
+    model = genai.GenerativeModel('gemini-1.5-flash-latest') # Use appropriate model name
 
-    payload = {
-        "contents": [{"parts": [{"text": full_prompt}]}],
-        "generationConfig": {
-            "temperature": 0.7,
-            "topK": 1,
-            "topP": 1,
-            "maxOutputTokens": 3072  # Increased for more detailed contextual analysis
-        }
-    }
+    # Generation configuration for the SDK
+    generation_config = genai.types.GenerationConfig(
+        temperature=0.7,
+        top_k=1,
+        top_p=1,
+        max_output_tokens=3072,
+        response_mime_type="application/json" # Request JSON output directly
+    )
+
     try:
-        response = requests.post(gemini_api_url, headers=headers, data=json.dumps(payload))
-        if response.status_code == 200:
-            gemini_response = response.json()
-            logger.info(f"Gemini API response structure: {json.dumps(gemini_response, indent=2)[:500]}...")
-            
-            # Safely navigate the response structure
-            if 'candidates' not in gemini_response:
-                return {"error": "No candidates in Gemini response", "gemini_raw_response": gemini_response}
-            
-            candidates = gemini_response['candidates']
-            if not isinstance(candidates, list) or len(candidates) == 0:
-                return {"error": "Invalid candidates structure in Gemini response", "gemini_raw_response": gemini_response}
-            
-            candidate = candidates[0]
-            if 'content' not in candidate:
-                return {"error": "No content in Gemini candidate", "gemini_raw_response": gemini_response}
-            
-            content = candidate['content']
-            if 'parts' not in content:
-                return {"error": "No parts in Gemini content", "gemini_raw_response": gemini_response}
-            
-            parts = content['parts']
-            if not isinstance(parts, list) or len(parts) == 0:
-                return {"error": "Invalid parts structure in Gemini content", "gemini_raw_response": gemini_response}
-            
-            part = parts[0]
-            if 'text' not in part:
-                return {"error": "No text in Gemini part", "gemini_raw_response": gemini_response}
-            
-            text = part['text']
-            
-            # Remove markdown code block formatting if present
-            if text.strip().startswith('```json'):
-                text = text.strip()
-                # Find the JSON content between ```json and ```
-                start = text.find('```json') + 7
-                end = text.rfind('```')
-                if end > start:
-                    text = text[start:end].strip()
-            elif text.strip().startswith('```'):
-                text = text.strip()
-                # Handle generic code blocks
-                start = text.find('```') + 3
-                end = text.rfind('```')
-                if end > start:
-                    text = text[start:end].strip()
-            
-            try:
-                return json.loads(text)
-            except json.JSONDecodeError as e:
-                return {
-                    "error": f"Failed to parse Gemini JSON response: {str(e)}",
-                    "gemini_text": text,
-                    "gemini_raw_response": gemini_response
-                }
-        else:
-            return {"error": f"Gemini API error: {response.status_code} - {response.text}"}
-    except Exception as e:
-        logger.error(f"Exception in query_gemini: {str(e)}")
-        return {"error": f"Gemini request error: {str(e)}"}
+        logger.info("Sending request to Gemini API via SDK...")
+        response = model.generate_content(
+            contents=[full_prompt], # Pass prompt as contents
+            generation_config=generation_config
+        )
+
+        logger.info(f"Gemini SDK response received. Number of candidates: {len(response.candidates)}")
+        # Assuming the first candidate's first part contains the JSON text.
+        # The SDK should ideally parse this if response_mime_type="application/json" worked as expected.
+        # Accessing response.text might directly give the parsed JSON string if the model and SDK handle it.
+        # Based on documentation, response.text should give the string content.
+        # If response_mime_type="application/json" is fully honored by the model,
+        # response.candidates[0].content.parts[0].json_data (or similar) might exist.
+        # For now, let's assume response.text gives the string that needs parsing.
+
+        # The SDK's response.text should directly contain the model's output string.
+        # If response_mime_type="application/json" is set, it *should* be a JSON string.
+        text_response = response.text
+
+        # logger.info(f"Gemini SDK raw text response: {text_response[:500]}...") # Log snippet
+
+        # The markdown stripping might still be needed if the model sometimes wraps JSON in markdown
+        # despite response_mime_type.
+        if text_response.strip().startswith('```json'):
+            text_response = text_response.strip()
+            start = text_response.find('```json') + 7
+            end = text_response.rfind('```')
+            if end > start:
+                text_response = text_response[start:end].strip()
+        elif text_response.strip().startswith('```'):
+            text_response = text_response.strip()
+            start = text_response.find('```') + 3
+            end = text_response.rfind('```')
+            if end > start:
+                text_response = text_response[start:end].strip()
+
+        try:
+            return json.loads(text_response)
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse JSON response from Gemini SDK: {e}. Response text: {text_response[:1000]}")
+            return {
+                "error": f"Failed to parse Gemini JSON response: {str(e)}",
+                "gemini_text": text_response # Return the problematic text for debugging
+            }
+
+    except Exception as e: # Catch more specific SDK errors if known, e.g., google.api_core.exceptions
+        logger.error(f"Exception during Gemini SDK call: {str(e)}", exc_info=True)
+        # Check for specific Google API errors if possible
+        # from google.api_core import exceptions as google_exceptions
+        # if isinstance(e, google_exceptions.GoogleAPIError):
+        #    return {"error": f"Gemini API Error (SDK): {e.message}"}
+        return {"error": f"Gemini SDK request error: {str(e)}"}
+
 
 def validate_and_structure_gemini_response(raw_response, transcript, session_context=None):
     """
