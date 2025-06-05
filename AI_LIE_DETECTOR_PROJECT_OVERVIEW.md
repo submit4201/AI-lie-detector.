@@ -10,7 +10,7 @@ The AI Lie Detector is a sophisticated voice analysis application that combines 
 
 - **Framework**: FastAPI with Pydantic for data validation
 - **AI Integration**: Google Gemini AI for advanced deception analysis
-- **Speech Processing**: SpeechRecognition library with Google Speech-to-Text integration - i'd like to rid of us this dependacy and let a llm do that
+- **Speech Processing**: SpeechRecognition library with Google Speech-to-Text integration
 - **Audio Processing**: PyDub for audio quality assessment
 - **Session Management**: In-memory conversation tracking
 - **Ports**: Backend runs on `http://localhost:8000`
