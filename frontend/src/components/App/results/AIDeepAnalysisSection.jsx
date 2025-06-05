@@ -9,7 +9,7 @@ import {
 import ManipulationAssessmentCard from './ManipulationAssessmentCard';
 import ArgumentAnalysisCard from './ArgumentAnalysisCard';
 import SpeakerAttitudeCard from './SpeakerAttitudeCard';
-import EnhancedUnderstandingCard from './EnhancedUnderstandingCard';
+// import EnhancedUnderstandingCard from './EnhancedUnderstandingCard'; // Removed
 
 // Individual card components for AI Deep Analysis
 // These are kept as they are, and will be wrapped by Accordion items.
@@ -32,51 +32,49 @@ const AnalysisErrorCard = ({ geminiData }) => (
   </Card>
 );
 
-const GeminiSummaryCard = ({ summary }) => (
-  <Card className="bg-transparent shadow-none border-none rounded-none">
-    {/* Removed CardContent padding and h3, as AccordionItem will handle padding and AccordionTrigger the title */}
-    <CardContent className="p-0">
-      <div className="bg-black/30 backdrop-blur-sm border border-white/20 rounded-lg p-4">
-        {typeof summary === 'object' ? (
-          <div className="space-y-3">
-            {summary.tone && (
-              <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-purple-400/30">
-                <span className="font-semibold text-purple-300">🎭 Tone Analysis:</span>
-                <p className="text-gray-200 mt-1 whitespace-pre-wrap">{summary.tone}</p>
-              </div>
-            )}
-            {summary.motivation && (
-              <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-blue-400/30">
-                <span className="font-semibold text-blue-300">🎯 Motivation Assessment:</span>
-                <p className="text-gray-200 mt-1 whitespace-pre-wrap">{summary.motivation}</p>
-              </div>
-            )}
-            {summary.credibility && (
-              <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-green-400/30">
-                <span className="font-semibold text-green-300">✅ Credibility Analysis:</span>
-                <p className="text-gray-200 mt-1 whitespace-pre-wrap">{summary.credibility}</p>
-              </div>
-            )}
-            {summary.emotional_state && (
-              <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-yellow-400/30">
-                <span className="font-semibold text-yellow-300">😊 Emotional State:</span>
-                <p className="text-gray-200 mt-1 whitespace-pre-wrap">{summary.emotional_state}</p>
-              </div>
-            )}
-            {summary.communication_style && (
-              <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-cyan-400/30">
-                <span className="font-semibold text-cyan-300">💬 Communication Style:</span>
-                <p className="text-gray-200 mt-1 whitespace-pre-wrap">{summary.communication_style}</p>
-              </div>
-            )}
+const GeminiSummaryCard = ({ summary }) => {
+  // Removed Card, CardContent, and the immediate bg-black/30 div.
+  // Returning the inner content directly, to be placed in AccordionContent.
+  if (typeof summary === 'object') {
+    return (
+      <div className="space-y-3">
+        {summary.tone && (
+          <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-purple-400/30">
+            <span className="font-semibold text-purple-300">🎭 Tone Analysis:</span>
+            <p className="text-gray-200 mt-1 whitespace-pre-wrap">{summary.tone}</p>
           </div>
-        ) : (
-          <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{summary}</p>
+        )}
+        {summary.motivation && (
+          <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-blue-400/30">
+            <span className="font-semibold text-blue-300">🎯 Motivation Assessment:</span>
+            <p className="text-gray-200 mt-1 whitespace-pre-wrap">{summary.motivation}</p>
+          </div>
+        )}
+        {summary.credibility && (
+          <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-green-400/30">
+            <span className="font-semibold text-green-300">✅ Credibility Analysis:</span>
+            <p className="text-gray-200 mt-1 whitespace-pre-wrap">{summary.credibility}</p>
+          </div>
+        )}
+        {summary.emotional_state && (
+          <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-yellow-400/30">
+            <span className="font-semibold text-yellow-300">😊 Emotional State:</span>
+            <p className="text-gray-200 mt-1 whitespace-pre-wrap">{summary.emotional_state}</p>
+          </div>
+        )}
+        {summary.communication_style && (
+          <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-cyan-400/30">
+            <span className="font-semibold text-cyan-300">💬 Communication Style:</span>
+            <p className="text-gray-200 mt-1 whitespace-pre-wrap">{summary.communication_style}</p>
+          </div>
         )}
       </div>
-    </CardContent>
-  </Card>
-);
+    );
+  }
+  return (
+    <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{summary}</p>
+  );
+};
 
 const SessionInsightsCard = ({ insights }) => (
   <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl h-fit">
@@ -87,6 +85,72 @@ const SessionInsightsCard = ({ insights }) => (
         <div className="space-y-3">
           {insights.consistency_analysis && (
             <div className="bg-blue-500/10 backdrop-blur-sm p-3 rounded-lg border border-blue-400/30">
+                <span className="font-semibold text-purple-300">🎭 Tone Analysis:</span>
+                <p className="text-gray-200 mt-1 whitespace-pre-wrap">{summary.tone}</p>
+              </div>
+            )}
+const LinguisticAnalysisCard = ({ analysis }) => (
+  // Removed Card, CardContent, and the immediate bg-black/30 div.
+  <div className="space-y-3">
+    {analysis.speech_patterns && (
+      <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-blue-400/30">
+        <span className="font-semibold text-blue-300">🎵 Speech Patterns:</span>
+        <p className="text-gray-200 mt-1 whitespace-pre-wrap">{analysis.speech_patterns}</p>
+      </div>
+    )}
+    {analysis.word_choice && (
+      <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-purple-400/30">
+        <span className="font-semibold text-purple-300">📖 Word Choice:</span>
+        <p className="text-gray-200 mt-1 whitespace-pre-wrap">{analysis.word_choice}</p>
+      </div>
+    )}
+    {analysis.emotional_consistency && (
+      <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-yellow-400/30">
+        <span className="font-semibold text-yellow-300">💭 Emotional Consistency:</span>
+        <p className="text-gray-200 mt-1 whitespace-pre-wrap">{analysis.emotional_consistency}</p>
+      </div>
+    )}
+    {analysis.detail_level && (
+      <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-green-400/30">
+        <span className="font-semibold text-green-300">🔍 Detail Level:</span>
+        <p className="text-gray-200 mt-1 whitespace-pre-wrap">{analysis.detail_level}</p>
+      </div>
+    )}
+  </div>
+);
+
+const SpeakerSpecificAnalysisCard = ({ analysis }) => (
+  // Removed Card, CardContent. The outer div "space-y-4" is the new root.
+  <div className="space-y-4">
+    {Object.entries(analysis).map(([speaker, flags], index) => (
+      <div key={index} className="bg-black/30 backdrop-blur-sm border border-white/20 rounded-lg p-4">
+        <h4 className="text-white font-semibold mb-3">{speaker}</h4>
+        {Array.isArray(flags) && flags.length > 0 ? (
+          <div className="space-y-2">
+            {flags.map((flag, flagIndex) => (
+              <div key={flagIndex} className="bg-red-500/20 backdrop-blur-sm p-3 rounded-lg border border-red-400/30">
+                <span className="text-red-200">⚠️ {flag}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-green-500/20 backdrop-blur-sm p-3 rounded-lg border border-green-400/30">
+            <span className="text-green-200">✅ No significant indicators detected</span>
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+);
+
+const SpeakerTranscriptsCard = ({ transcripts }) => (
+  <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl h-fit">
+    <CardContent className="p-6">
+      <h3 className="text-xl font-semibold text-white mb-4">🗣️ Speaker Transcripts</h3>
+      {/* Content of SpeakerTranscriptsCard */}
+      <div className="space-y-3 max-h-96 overflow-y-auto">
+        {Object.entries(transcripts).map(([speaker, transcript], index) => (
+          <div key={index} className="bg-black/30 backdrop-blur-sm border border-white/20 rounded-lg p-4">
               <span className="font-semibold text-blue-300">Consistency Analysis:</span>
               <p className="text-gray-200 mt-1 whitespace-pre-wrap">{insights.consistency_analysis}</p>
             </div>
@@ -115,76 +179,35 @@ const SessionInsightsCard = ({ insights }) => (
   </Card>
 );
 
-const LinguisticAnalysisCard = ({ analysis }) => (
-  <Card className="bg-transparent shadow-none border-none rounded-none">
-    <CardContent className="p-0">
-      <div className="bg-black/30 backdrop-blur-sm border border-white/20 rounded-lg p-4">
-        <div className="space-y-3">
-          {analysis.speech_patterns && (
-            <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-blue-400/30">
-              <span className="font-semibold text-blue-300">🎵 Speech Patterns:</span>
-              <p className="text-gray-200 mt-1 whitespace-pre-wrap">{analysis.speech_patterns}</p>
+const RecommendationsCard = ({ recommendations }) => {
+  // Removed Card, CardContent, and the immediate bg-black/30 div.
+  if (Array.isArray(recommendations)) {
+    return (
+      <div className="space-y-3">
+        {recommendations.map((rec, index) => (
+          <div key={index} className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border-l-4 border-green-400">
+            <div className="flex items-start">
+              <span className="bg-green-900/50 text-green-300 font-bold rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3 mt-0.5 shrink-0">
+                {index + 1}
+              </span>
+              <p className="text-gray-200 leading-relaxed">{rec}</p>
             </div>
-          )}
-          {analysis.word_choice && (
-            <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-purple-400/30">
-              <span className="font-semibold text-purple-300">📖 Word Choice:</span>
-              <p className="text-gray-200 mt-1 whitespace-pre-wrap">{analysis.word_choice}</p>
-            </div>
-          )}
-          {analysis.emotional_consistency && (
-            <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-yellow-400/30">
-              <span className="font-semibold text-yellow-300">💭 Emotional Consistency:</span>
-              <p className="text-gray-200 mt-1 whitespace-pre-wrap">{analysis.emotional_consistency}</p>
-            </div>
-          )}
-          {analysis.detail_level && (
-            <div className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-green-400/30">
-              <span className="font-semibold text-green-300">🔍 Detail Level:</span>
-              <p className="text-gray-200 mt-1 whitespace-pre-wrap">{analysis.detail_level}</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
-
-const SpeakerSpecificAnalysisCard = ({ analysis }) => (
-  <Card className="bg-transparent shadow-none border-none rounded-none">
-    <CardContent className="p-0">
-      <div className="space-y-4">
-        {Object.entries(analysis).map(([speaker, flags], index) => (
-          <div key={index} className="bg-black/30 backdrop-blur-sm border border-white/20 rounded-lg p-4">
-            <h4 className="text-white font-semibold mb-3">{speaker}</h4>
-            {Array.isArray(flags) && flags.length > 0 ? (
-              <div className="space-y-2">
-                {flags.map((flag, flagIndex) => (
-                  <div key={flagIndex} className="bg-red-500/20 backdrop-blur-sm p-3 rounded-lg border border-red-400/30">
-                    <span className="text-red-200">⚠️ {flag}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-green-500/20 backdrop-blur-sm p-3 rounded-lg border border-green-400/30">
-                <span className="text-green-200">✅ No significant indicators detected</span>
-              </div>
-            )}
           </div>
         ))}
       </div>
-    </CardContent>
-  </Card>
-);
+    );
+  }
+  return (
+    <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{recommendations}</p>
+  );
+};
 
-const SpeakerTranscriptsCard = ({ transcripts }) => (
+const DebugInfoCard = ({ metadata }) => (
   <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl h-fit">
     <CardContent className="p-6">
-      <h3 className="text-xl font-semibold text-white mb-4">🗣️ Speaker Transcripts</h3>
-      {/* Content of SpeakerTranscriptsCard */}
-      <div className="space-y-3 max-h-96 overflow-y-auto">
-        {Object.entries(transcripts).map(([speaker, transcript], index) => (
-          <div key={index} className="bg-black/30 backdrop-blur-sm border border-white/20 rounded-lg p-4">
+      <h3 className="text-xl font-semibold text-white mb-4">🔧 Debug Information</h3>
+      {/* Content of DebugInfoCard */}
+      <div className="bg-black/30 backdrop-blur-sm border border-white/20 rounded-lg p-4">
             <p className="text-white font-semibold mb-2">{speaker}</p>
             <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{transcript}</p>
           </div>
@@ -194,37 +217,6 @@ const SpeakerTranscriptsCard = ({ transcripts }) => (
   </Card>
 );
 
-const RecommendationsCard = ({ recommendations }) => (
-  <Card className="bg-transparent shadow-none border-none rounded-none">
-    <CardContent className="p-0">
-      <div className="bg-black/30 backdrop-blur-sm border border-white/20 rounded-lg p-4">
-        {Array.isArray(recommendations) ? (
-          <div className="space-y-3">
-            {recommendations.map((rec, index) => (
-              <div key={index} className="bg-black/20 backdrop-blur-sm p-3 rounded-lg border-l-4 border-green-400">
-                <div className="flex items-start">
-                  <span className="bg-green-900/50 text-green-300 font-bold rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3 mt-0.5 shrink-0">
-                    {index + 1}
-                  </span>
-                  <p className="text-gray-200 leading-relaxed">{rec}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{recommendations}</p>
-        )}
-      </div>
-    </CardContent>
-  </Card>
-);
-
-const DebugInfoCard = ({ metadata }) => (
-  <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl h-fit">
-    <CardContent className="p-6">
-      <h3 className="text-xl font-semibold text-white mb-4">🔧 Debug Information</h3>
-      {/* Content of DebugInfoCard */}
-      <div className="bg-black/30 backdrop-blur-sm border border-white/20 rounded-lg p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           <div>
             <span className="text-gray-400">Processing Time:</span>
@@ -275,10 +267,10 @@ const AIDeepAnalysisSection = ({ result, parseGeminiAnalysis, getCredibilityColo
     "item-manipulation-assessment",
     "item-argument-analysis",
     "item-speaker-attitude",
-    "item-enhanced-understanding",
+    // "item-enhanced-understanding", // Removed
     "item-linguistic-analysis",
-    "item-speaker-specific",
-    "item-recommendations"
+    "item-speaker-specific"
+    // "item-recommendations" // Already Removed
   ];
 
   return (
@@ -290,11 +282,11 @@ const AIDeepAnalysisSection = ({ result, parseGeminiAnalysis, getCredibilityColo
       <Accordion type="multiple" defaultValue={defaultOpenValues} className="space-y-4">
         {/* Core AI Analysis */}
         {result.gemini_summary && (
-          <AccordionItem value="item-gemini-summary" className="bg-white/5 backdrop-blur-md border-white/10 shadow-lg rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
-            <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline p-6 data-[state=open]:border-b data-[state=open]:border-white/20">
+          <AccordionItem value="item-gemini-summary" className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
+            <AccordionTrigger className="text-xl font-semibold text-white p-6 hover:bg-slate-700/30 rounded-md focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none">
               📋 Overall Summary
             </AccordionTrigger>
-            <AccordionContent className="p-6 pt-4">
+            <AccordionContent className="pt-0 pb-6 px-6">
               <GeminiSummaryCard summary={result.gemini_summary} />
             </AccordionContent>
           </AccordionItem>
@@ -302,11 +294,11 @@ const AIDeepAnalysisSection = ({ result, parseGeminiAnalysis, getCredibilityColo
 
         {/* Manipulation Assessment */}
         {result.manipulation_assessment && (
-          <AccordionItem value="item-manipulation-assessment" className="bg-white/5 backdrop-blur-md border-white/10 shadow-lg rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
-            <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline p-6 data-[state=open]:border-b data-[state=open]:border-white/20">
+          <AccordionItem value="item-manipulation-assessment" className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
+            <AccordionTrigger className="text-xl font-semibold text-white p-6 hover:bg-slate-700/30 rounded-md focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none">
               🛡️ Manipulation Assessment
             </AccordionTrigger>
-            <AccordionContent className="p-6 pt-4">
+            <AccordionContent className="pt-0 pb-6 px-6">
               <ManipulationAssessmentCard assessment={result.manipulation_assessment} />
             </AccordionContent>
           </AccordionItem>
@@ -314,11 +306,11 @@ const AIDeepAnalysisSection = ({ result, parseGeminiAnalysis, getCredibilityColo
 
         {/* Argument Analysis */}
         {result.argument_analysis && (
-          <AccordionItem value="item-argument-analysis" className="bg-white/5 backdrop-blur-md border-white/10 shadow-lg rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
-            <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline p-6 data-[state=open]:border-b data-[state=open]:border-white/20">
+          <AccordionItem value="item-argument-analysis" className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
+            <AccordionTrigger className="text-xl font-semibold text-white p-6 hover:bg-slate-700/30 rounded-md focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none">
               ⚖️ Argument Analysis
             </AccordionTrigger>
-            <AccordionContent className="p-6 pt-4">
+            <AccordionContent className="pt-0 pb-6 px-6">
               <ArgumentAnalysisCard analysis={result.argument_analysis} />
             </AccordionContent>
           </AccordionItem>
@@ -326,35 +318,35 @@ const AIDeepAnalysisSection = ({ result, parseGeminiAnalysis, getCredibilityColo
 
         {/* Speaker Attitude */}
         {result.speaker_attitude && (
-          <AccordionItem value="item-speaker-attitude" className="bg-white/5 backdrop-blur-md border-white/10 shadow-lg rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
-            <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline p-6 data-[state=open]:border-b data-[state=open]:border-white/20">
+          <AccordionItem value="item-speaker-attitude" className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
+            <AccordionTrigger className="text-xl font-semibold text-white p-6 hover:bg-slate-700/30 rounded-md focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none">
               🗣️ Speaker Attitude
             </AccordionTrigger>
-            <AccordionContent className="p-6 pt-4">
+            <AccordionContent className="pt-0 pb-6 px-6">
               <SpeakerAttitudeCard attitude={result.speaker_attitude} />
             </AccordionContent>
           </AccordionItem>
         )}
 
-        {/* Enhanced Understanding */}
-        {result.enhanced_understanding && (
-          <AccordionItem value="item-enhanced-understanding" className="bg-white/5 backdrop-blur-md border-white/10 shadow-lg rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
-            <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline p-6 data-[state=open]:border-b data-[state=open]:border-white/20">
+        {/* Enhanced Understanding - This section is now removed */}
+        {/* {result.enhanced_understanding && (
+          <AccordionItem value="item-enhanced-understanding" className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
+            <AccordionTrigger className="text-xl font-semibold text-white p-6 hover:bg-slate-700/30 rounded-md focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none">
               💡 Enhanced Understanding
             </AccordionTrigger>
-            <AccordionContent className="p-6 pt-4">
+            <AccordionContent className="pt-0 pb-6 px-6">
               <EnhancedUnderstandingCard understanding={result.enhanced_understanding} />
             </AccordionContent>
           </AccordionItem>
-        )}
+        )} */}
 
         {/* Linguistic Patterns */}
         {result.linguistic_analysis && (
-          <AccordionItem value="item-linguistic-analysis" className="bg-white/5 backdrop-blur-md border-white/10 shadow-lg rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
-            <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline p-6 data-[state=open]:border-b data-[state=open]:border-white/20">
+          <AccordionItem value="item-linguistic-analysis" className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
+            <AccordionTrigger className="text-xl font-semibold text-white p-6 hover:bg-slate-700/30 rounded-md focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none">
               📝 Linguistic Analysis
             </AccordionTrigger>
-            <AccordionContent className="p-6 pt-4">
+            <AccordionContent className="pt-0 pb-6 px-6">
               <LinguisticAnalysisCard analysis={result.linguistic_analysis} />
             </AccordionContent>
           </AccordionItem>
@@ -362,27 +354,27 @@ const AIDeepAnalysisSection = ({ result, parseGeminiAnalysis, getCredibilityColo
 
         {/* Speaker-Specific Flags */}
         {result.red_flags_per_speaker && Object.keys(result.red_flags_per_speaker).length > 0 && (
-          <AccordionItem value="item-speaker-specific" className="bg-white/5 backdrop-blur-md border-white/10 shadow-lg rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
-            <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline p-6 data-[state=open]:border-b data-[state=open]:border-white/20">
+          <AccordionItem value="item-speaker-specific" className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
+            <AccordionTrigger className="text-xl font-semibold text-white p-6 hover:bg-slate-700/30 rounded-md focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none">
               🔍 Speaker-Specific Analysis
             </AccordionTrigger>
-            <AccordionContent className="p-6 pt-4">
+            <AccordionContent className="pt-0 pb-6 px-6">
               <SpeakerSpecificAnalysisCard analysis={result.red_flags_per_speaker} />
             </AccordionContent>
           </AccordionItem>
         )}
 
-        {/* Actionable Recommendations */}
-        {result.recommendations && (
-          <AccordionItem value="item-recommendations" className="bg-white/5 backdrop-blur-md border-white/10 shadow-lg rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
-            <AccordionTrigger className="text-xl font-semibold text-white hover:no-underline p-6 data-[state=open]:border-b data-[state=open]:border-white/20">
+        {/* Actionable Recommendations - This section is now removed */}
+        {/* {result.recommendations && (
+          <AccordionItem value="item-recommendations" className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl rounded-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-lg">
+            <AccordionTrigger className="text-xl font-semibold text-white p-6 hover:bg-slate-700/30 rounded-md focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none">
               💡 Recommendations
             </AccordionTrigger>
-            <AccordionContent className="p-6 pt-4">
+            <AccordionContent className="pt-0 pb-6 px-6">
               <RecommendationsCard recommendations={result.recommendations} />
             </AccordionContent>
           </AccordionItem>
-        )}
+        )} */}
       </Accordion>
     </div>
   );

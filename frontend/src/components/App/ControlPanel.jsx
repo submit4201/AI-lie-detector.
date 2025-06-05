@@ -32,9 +32,9 @@ const ControlPanel = ({
               <h3 className="text-white font-semibold text-lg">🗂️ Conversation Session</h3>
               <Button
                 onClick={() => setShowSessionPanel(!showSessionPanel)}
-                variant="outline"
-                size="sm"
-                className="text-white border-white/30 hover:bg-white/10"
+                // variant="outline" // Removed
+                // size="sm" // Removed, using custom classes for padding/height
+                className="text-sm font-semibold text-gray-200 hover:text-white bg-slate-700/40 hover:bg-slate-700/60 border border-white/20 rounded-md shadow-sm transition-all duration-300 flex items-center px-3 py-2" // Added px-3 py-2 for size="sm" feel
               >
                 <Settings className="w-4 h-4 mr-2" />
                 {showSessionPanel ? 'Hide' : 'Show'} Session
@@ -62,17 +62,17 @@ const ControlPanel = ({
               <div className="flex gap-2 ml-auto">
                 <Button
                   onClick={createNewSession}
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  // size="sm" // Removed
+                  className="text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-md shadow-md hover:shadow-lg transition-all duration-300 px-3 py-2" // Added px-3 py-2
                 >
                   New Session
                 </Button>
                 {sessionId && (
                   <Button
                     onClick={clearCurrentSession}
-                    size="sm"
-                    variant="outline"
-                    className="text-red-400 border-red-400/30 hover:bg-red-500/10"
+                    // size="sm" // Removed
+                    // variant="outline" // Removed
+                    className="text-sm font-semibold text-red-300 hover:text-red-200 border border-red-500/50 hover:bg-red-500/20 rounded-md shadow-sm hover:shadow-md transition-all duration-300 px-3 py-2" // Added px-3 py-2
                   >
                     Clear Session
                   </Button>

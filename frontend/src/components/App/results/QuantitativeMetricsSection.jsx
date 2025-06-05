@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ResponsiveContainer, RadialBarChart, RadialBar, PolarAngleAxis, Text } from 'recharts';
 
 const MetricCard = ({ title, value, unit, description, color = "blue", comparison }) => (
-  <div className={`bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-${color}-400/30`}>
+  <div className={`bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-${color}-400/30 hover:border-${color}-400/50 transition-all duration-300`}>
     <div className="flex justify-between items-center mb-1">
       <span className={`text-${color}-300 font-medium text-sm`}>{title}</span>
       <span className={`text-${color}-200 font-bold`}>
