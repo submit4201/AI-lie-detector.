@@ -273,12 +273,12 @@ Assessment      & Speaker ID       Pattern Analysis   Classification    Response
 4. **Risk Assessment**: Overall threat level, specific factors, mitigation
 5. **Session Context**: Pattern evolution, consistency tracking
 
-## would like to add more to the gemini analysis
+## Additional Areas for Gemini Analysis
 
-manipulation assessment
-more  thoughtful and direct ways to gain a an understanding or get information to help figure out the diception
-strengths and weaknesses
-respect/sarcasm/
+- Manipulation assessment
+- More thoughtful and direct methods to gain an understanding or obtain information to help identify deception
+- Strengths and weaknesses
+- Respect and sarcasm
 
 ### Enhanced LLM Capabilities We Should Consider
 
