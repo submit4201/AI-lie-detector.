@@ -1,18 +1,19 @@
-from fastapi import APIRouter, HTTPException, Path
+from fastapi import APIRouter, HTTPException, Path, Depends
+import logging
 
-from backend.models import (
+from models import (
     NewSessionResponse,
     SessionHistoryResponse,
     SessionHistoryItem, # Needed for constructing response
     DeleteSessionResponse,
     ErrorResponse
 )
-from backend.services.session_service import conversation_history_service # Import the instance
+from services.session_service import conversation_history_service # Import the instance
 
 router = APIRouter()
 
 @router.post(
-    "/session/new",
+    "/new",
     response_model=NewSessionResponse,
     tags=["Session Management"],
     summary="Create New Session",
@@ -30,7 +31,7 @@ async def create_new_session_endpoint():
         raise HTTPException(status_code=500, detail=f"Failed to create session: {str(e)}")
 
 @router.get(
-    "/session/{session_id}/history",
+    "/{session_id}/history",
     response_model=SessionHistoryResponse,
     tags=["Session Management"],
     summary="Get Session History",
@@ -62,7 +63,7 @@ async def get_session_history_endpoint(
 
 
 @router.delete(
-    "/session/{session_id}",
+    "/{session_id}",
     response_model=DeleteSessionResponse,
     tags=["Session Management"],
     summary="Delete Session",

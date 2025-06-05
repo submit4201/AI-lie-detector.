@@ -24,22 +24,26 @@ class ConversationHistory:
             self.get_or_create_session(session_id)
 
         session = self.sessions[session_id]
-        session["analysis_count"] += 1
-
-        # Storing a summary for history
+        session["analysis_count"] += 1        # Storing a summary for history
         history_entry = {
             "timestamp": datetime.now(),
             "transcript": transcript,
-            "analysis_summary": {
+            "analysis": {
                 "credibility_score": analysis_result.get("credibility_score"),
-                "overall_risk": analysis_result.get("risk_assessment", {}).get("overall_risk"),
+                "confidence_level": analysis_result.get("confidence_level"),
+                "overall_risk": analysis_result.get("risk_assessment", {}).get("overall_risk") if analysis_result.get("risk_assessment") else None,
                 "top_emotion": analysis_result.get("emotion_analysis", [{}])[0].get("label") if analysis_result.get("emotion_analysis") else None,
+                "red_flags_count": len(analysis_result.get("red_flags_per_speaker", {}).get("Speaker 1", [])) if analysis_result.get("red_flags_per_speaker") else 0,
+                "gemini_summary_preview": str(analysis_result.get("gemini_summary", ""))[:200] + "..." if analysis_result.get("gemini_summary") else None,
+                # Add linguistic analysis data for insights generation
+                "hesitation_count": analysis_result.get("linguistic_analysis", {}).get("hesitation_count", 0),
+                "speech_rate_wpm": analysis_result.get("linguistic_analysis", {}).get("speech_rate_wpm", 150),
+                "formality_score": analysis_result.get("linguistic_analysis", {}).get("formality_score", 50),
+                "deception_flags": analysis_result.get("deception_flags", [])
             },
             "analysis_number": session["analysis_count"]
         }
-        session["history"].append(history_entry)
-
-        # Keep only last 10 analyses to prevent memory bloat
+        session["history"].append(history_entry)        # Keep only last 10 analyses to prevent memory bloat
         if len(session["history"]) > 10:
             session["history"] = session["history"][-10:]
 
@@ -48,6 +52,38 @@ class ConversationHistory:
         if not session:
             return []
         return session.get("history", [])
+
+    def get_session_history(self, session_id: str) -> List[Dict[str, Any]]:
+        """Get session history for insights generation - returns history entries with full analysis data"""
+        session = self.sessions.get(session_id)
+        if not session:
+            return []
+        
+        # Convert history entries to format expected by insights generator
+        history_for_insights = []
+        for entry in session.get("history", []):
+            # Reconstruct analysis data from stored summary
+            analysis_summary = entry.get("analysis", {})
+            reconstructed_entry = {
+                "timestamp": entry.get("timestamp"),
+                "transcript": entry.get("transcript"),
+                "analysis": {
+                    "credibility_score": analysis_summary.get("credibility_score"),
+                    "confidence_level": analysis_summary.get("confidence_level"), 
+                    "overall_risk": analysis_summary.get("overall_risk"),
+                    "emotion_analysis": [{"label": analysis_summary.get("top_emotion"), "score": 1.0}] if analysis_summary.get("top_emotion") else [],
+                    "linguistic_analysis": {
+                        "hesitation_count": analysis_summary.get("hesitation_count", 0),
+                        "speech_rate_wpm": analysis_summary.get("speech_rate_wpm", 150),
+                        "formality_score": analysis_summary.get("formality_score", 50)
+                    },
+                    "risk_assessment": {"overall_risk": analysis_summary.get("overall_risk")} if analysis_summary.get("overall_risk") else {},
+                    "deception_flags": analysis_summary.get("deception_flags", [])
+                }
+            }
+            history_for_insights.append(reconstructed_entry)
+        
+        return history_for_insights
 
     def delete_session(self, session_id: str) -> bool:
         if session_id in self.sessions:

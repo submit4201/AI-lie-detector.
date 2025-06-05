@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 import logging
 
 # Assuming EMOTION_CLASSIFIER is initialized in config.py and imported
-from backend.config import EMOTION_CLASSIFIER
+from config import EMOTION_CLASSIFIER
 
 logger = logging.getLogger(__name__)
 

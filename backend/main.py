@@ -2,13 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 
-# Import routers from the api module
-from backend.api import analysis_routes, session_routes, general_routes
-# Config might be imported if needed for app settings, but not directly used in this minimal main.py
-# from backend.config import SOME_APP_LEVEL_SETTING
+# Import routers
+from api.analysis_routes import router as analysis_router
+from api.session_routes import router as session_router  
+from api.general_routes import router as general_router
 
-# Set up logging (if not already configured elsewhere, e.g. by Uvicorn)
-# This basicConfig should ideally be done once. If Uvicorn/Gunicorn handles logging, this might be redundant.
+# Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -25,7 +24,7 @@ Session management is included to maintain conversation context.
 
 app = FastAPI(
     title="AI Lie Detector API",
-    version="1.0.2", # Updated version after refactor
+    version="1.0.1",
     description=app_description,
     contact={
         "name": "API Support",
@@ -40,26 +39,17 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Allows all origins
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"], # Allows all methods
-    allow_headers=["*"], # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Include routers from the API modules
-# These routers should ideally have prefixes like /api/v1 to avoid clashes if static files are served from root
-# For this refactor, keeping them at root to match original behavior.
-app.include_router(general_routes.router, tags=["General"]) # Root path /
-app.include_router(analysis_routes.router, tags=["Analysis"]) # Path /analyze
-app.include_router(session_routes.router, tags=["Session Management"]) # Paths /session/*
-
-# The root endpoint is now in general_routes.py.
-# All specific endpoints like /analyze, /session/new etc. are moved to their respective route files.
-# All Pydantic models are in models.py
-# All service logic (ConversationHistory, audio processing, Gemini calls) is in service files.
-# All config (API keys, pipeline init) is in config.py.
+# Include routers
+app.include_router(general_router, tags=["General"])
+app.include_router(analysis_router, tags=["Analysis"])
+app.include_router(session_router, prefix="/session", tags=["Session Management"])
 
 if __name__ == "__main__":
     import uvicorn
-    # Uvicorn can also be run from the command line: uvicorn backend.main:app --reload
     uvicorn.run(app, host="0.0.0.0", port=8000)

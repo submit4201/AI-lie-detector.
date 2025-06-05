@@ -25,6 +25,23 @@ class GeminiSummary(BaseModel):
     strengths: str = Field(..., description="Aspects that support credibility.")
 
 class LinguisticAnalysis(BaseModel):
+    # Quantitative metrics
+    word_count: int = Field(..., description="Total number of words in the transcript.")
+    hesitation_count: int = Field(..., description="Number of hesitation markers (um, uh, er, ah, like, you know).")
+    qualifier_count: int = Field(..., description="Number of uncertainty qualifiers (maybe, perhaps, might, etc.).")
+    certainty_count: int = Field(..., description="Number of certainty indicators (definitely, absolutely, sure, etc.).")
+    filler_count: int = Field(..., description="Number of filler words (um, uh, er, ah).")
+    repetition_count: int = Field(..., description="Number of word repetitions detected.")
+    formality_score: float = Field(..., description="Formality score (0-100) based on formal language usage.")
+    complexity_score: float = Field(..., description="Linguistic complexity score (0-100).")
+    avg_word_length: float = Field(..., description="Average word length in characters.")
+    avg_words_per_sentence: float = Field(..., description="Average number of words per sentence.")
+    sentence_count: int = Field(..., description="Total number of sentences.")
+    speech_rate_wpm: Optional[float] = Field(None, description="Speech rate in words per minute (if duration available).")
+    hesitation_rate: Optional[float] = Field(None, description="Hesitation rate per minute (if duration available).")
+    confidence_ratio: float = Field(..., description="Ratio of certainty to uncertainty indicators (0-1).")
+    
+    # Descriptive analysis (for backwards compatibility)
     speech_patterns: str = Field(..., description="Analysis of speech rhythm, pace, pauses.")
     word_choice: str = Field(..., description="Analysis of vocabulary and phrasing choices.")
     emotional_consistency: str = Field(..., description="Consistency between claimed emotions and expression.")
