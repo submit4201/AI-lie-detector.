@@ -116,8 +116,7 @@ class AudioInput:
         """Async generator yielding (timestamp, pcm_bytes)."""
         while not self._stopping.is_set() or not self.queue.empty():
             try:
-                frame = await asyncio.wait_for(self.queue.get(), timeout=0.1)
-                yield frame
+                yield await asyncio.wait_for(self.queue.get(), timeout=0.1)
                 self.queue.task_done()  # If using queue.join() elsewhere
             except asyncio.TimeoutError:
                 if self._stopping.is_set() and self.queue.empty():

@@ -20,7 +20,7 @@ def assemble_feature_vector(audio_path: str) -> Dict[str, Any]:
         return feature_vector
 
     except Exception as e:
-        raise RuntimeError(f"Failed to assemble feature vector for path {audio_path}: {e}")
+        raise RuntimeError(f"Failed to assemble feature vector for path {audio_path}: {e}") from e
 
 def assemble_feature_vector_from_data(audio_data: bytes, sample_rate: int, channels: int) -> Dict[str, Any]:
     """
@@ -38,7 +38,7 @@ def assemble_feature_vector_from_data(audio_data: bytes, sample_rate: int, chann
         # Log the exception for better debugging
         # import logging
         # logging.exception("Error assembling feature vector from data")
-        raise RuntimeError(f"Failed to assemble feature vector from data: {e}")
+        raise RuntimeError(f"Failed to assemble feature vector from data: {e}") from e
 
 # Example usage (for dev/test only)
 if __name__ == '__main__':
