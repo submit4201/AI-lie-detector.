@@ -2,6 +2,12 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge"; // For risk assessment
 
+// Utility function to truncate text
+const getConciseText = (text, maxLength = 80) => {
+  if (!text || typeof text !== 'string') return '';
+  return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+};
+
 const KeyHighlightsSection = ({ result, getCredibilityColor, getCredibilityLabel }) => {
   if (!result) {
     return null;
@@ -39,9 +45,8 @@ const KeyHighlightsSection = ({ result, getCredibilityColor, getCredibilityLabel
   const allRedFlags = red_flags_per_speaker
     ? Object.values(red_flags_per_speaker).flat()
     : [];
-
   return (
-    <Card className="bg-gradient-to-br from-purple-600/20 via-blue-600/20 to-indigo-600/20 backdrop-blur-lg border-white/20 shadow-2xl">
+    <Card className="section-container glow-purple bg-gradient-to-br from-purple-600/20 via-blue-600/20 to-indigo-600/20 backdrop-blur-lg border-white/20 shadow-2xl">
       <CardContent className="p-6">
         <h2 className="text-2xl font-bold text-white mb-6 text-center">✨ Key Highlights ✨</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -55,10 +60,9 @@ const KeyHighlightsSection = ({ result, getCredibilityColor, getCredibilityLabel
               </div>
               <div className={`text-xl font-semibold ${getCredibilityColor(credibility_score / 100)} mb-3`}>
                 {getCredibilityLabel(credibility_score / 100)}
-              </div>
-              <div className="w-full bg-black/30 rounded-full h-2.5"> {/* Track changed to bg-black/30 */}
+              </div>              <div className="w-full bg-black/30 rounded-full h-2.5">
                 <div
-                  className={`h-2.5 rounded-full ${getCredibilityGradientClass(credibility_score)}`} {/* Fill uses gradient */}
+                  className={`h-2.5 rounded-full ${getCredibilityGradientClass(credibility_score)}`}
                   style={{ width: `${credibility_score}%` }}
                 ></div>
               </div>

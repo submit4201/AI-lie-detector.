@@ -73,51 +73,7 @@ const ManipulationAssessmentCard = ({ assessment }) => {
           )}
         </div>
       </CardContent>
-    </Card>
-  );
-};
-              <div className="w-full bg-gray-700 rounded-full h-2.5 mr-3">
-                <div
-                  className="bg-purple-500 h-2.5 rounded-full"
-                  style={{ width: `${manipulation_score}%` }}
-                ></div>
-              </div>
-              <span className="text-purple-200 font-bold">{manipulation_score}/100</span>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="text-md font-semibold text-purple-300 mb-2">Identified Tactics</h4>
-            {manipulation_tactics.length > 0 ? (
-              <ul className="space-y-1 list-disc list-inside pl-1">
-                {manipulation_tactics.map((tactic, index) => <ListItem key={index} item={tactic} />)}
-              </ul>
-            ) : (
-              <p className="text-gray-400 text-sm">None detected.</p>
-            )}
-          </div>
-
-          <div>
-            <h4 className="text-md font-semibold text-purple-300 mb-2">Explanation</h4>
-            <p className="text-gray-300 text-sm bg-black/20 p-3 rounded-md border border-white/10 whitespace-pre-wrap">
-              {manipulation_explanation || "N/A"}
-            </p>
-          </div>
-
-          <div>
-            <h4 className="text-md font-semibold text-purple-300 mb-2">Example Phrases</h4>
-            {example_phrases.length > 0 ? (
-              <ul className="space-y-1 list-disc list-inside pl-1">
-                {example_phrases.map((phrase, index) => <ListItem key={index} item={phrase} />)}
-              </ul>
-            ) : (
-              <p className="text-gray-400 text-sm">None provided.</p>
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+    </Card>  );
 };
 
 export default ManipulationAssessmentCard;

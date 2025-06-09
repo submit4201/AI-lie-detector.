@@ -285,3 +285,23 @@ def get_default_linguistic_analysis() -> Dict[str, Any]:
         "emotional_consistency": "Analysis unavailable - insufficient data",
         "detail_level": "Analysis unavailable - insufficient data"
     }
+
+def linguistic_analysis_pipeline(transcript: str, duration: float = None) -> Dict[str, Any]:
+    """
+    Main linguistic analysis pipeline that uses Gemini for transcription, emotion analysis, and audio analysis.
+    """
+    try:
+        linguistic_analysis = analyze_linguistic_patterns(transcript, duration)
+        detail_level = generate_detail_level_description(linguistic_analysis['avg_words_per_sentence'], linguistic_analysis['complexity_score'], linguistic_analysis['word_count'])
+        word_choice = generate_word_choice_description(linguistic_analysis['avg_word_length'], linguistic_analysis['formality_score'], linguistic_analysis['qualifier_count'], linguistic_analysis['certainty_count'])
+        emotional_consistency = generate_emotional_consistency_description(linguistic_analysis['hesitation_count'], linguistic_analysis['qualifier_count'], linguistic_analysis['confidence_ratio'])
+        speech_patterns = generate_speech_patterns_description(linguistic_analysis['word_count'], linguistic_analysis['hesitation_count'], linguistic_analysis['speech_rate_wpm'], linguistic_analysis['complexity_score'])
+        resp = {
+            "detail_level": detail_level,
+            "word_choice": word_choice,
+            "emotional_consistency": emotional_consistency,
+            "speech_patterns": speech_patterns,
+        }
+        return linguistic_analysis
+    except Exception as e:
+        logger.error(f"Exception in linguistic analysis pipeline: {str(e)}", exc_info=True)

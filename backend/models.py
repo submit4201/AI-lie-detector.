@@ -10,6 +10,11 @@ class AudioQualityMetrics(BaseModel):
     channels: int = Field(..., description="Number of audio channels.")
     loudness: float = Field(..., description="Loudness of the audio in dBFS.")
     quality_score: int = Field(..., description="Overall quality score (0-100).")
+    overall_quality: str = Field(default="Good", description="Overall quality assessment (e.g., 'Good', 'Fair', 'Poor').")
+    signal_to_noise_ratio: float = Field(default=0.0, description="Signal to noise ratio.")
+    clarity_score: float = Field(default=50.0, description="Audio clarity score (0-100).")
+    volume_consistency: float = Field(default=50.0, description="Volume consistency score (0-100).")
+    background_noise_level: float = Field(default=0.0, description="Background noise level assessment.")
 
 class EmotionScore(BaseModel):
     label: str = Field(..., description="Emotion label (e.g., 'anger', 'joy').")
@@ -47,6 +52,20 @@ class LinguisticAnalysis(BaseModel):
     emotional_consistency: str = Field(..., description="Consistency between claimed emotions and expression.")
     detail_level: str = Field(..., description="Appropriate level of detail vs vagueness.")
 
+    # New fields for linguistic analysis
+    pause_analysis: str = Field(..., description="Analysis of pauses and their significance.")
+    filler_word_analysis: str = Field(..., description="Analysis of filler words and their impact.")
+    repetition_analysis: str = Field(..., description="Analysis of word repetitions and their implications.")
+    hesitation_analysis: str = Field(..., description="Analysis of hesitation markers and their impact.")
+    qualifier_analysis: str = Field(..., description="Analysis of uncertainty qualifiers and their impact.")
+    certainty_analysis: str = Field(..., description="Analysis of certainty indicators and their impact.")
+    formality_analysis: str = Field(..., description="Analysis of formality in language usage.")
+    complexity_analysis: str = Field(..., description="Analysis of linguistic complexity and its implications.")
+    avg_word_length_analysis: str = Field(..., description="Analysis of average word length and its implications.")
+    avg_words_per_sentence_analysis: str = Field(..., description="Analysis of average words per sentence and its implications.")
+    sentence_count_analysis: str = Field(..., description="Analysis of sentence count and its implications.")
+    overall_linguistic_analysis: str = Field(..., description="Overall analysis of linguistic patterns and their implications.")
+
 class RiskAssessment(BaseModel):
     overall_risk: str = Field(..., description="Overall risk level (low/medium/high).")
     risk_factors: List[str] = Field(..., description="Specific risk factors identified.")
@@ -56,13 +75,13 @@ class RiskAssessment(BaseModel):
 class ManipulationAssessment(BaseModel):
     manipulation_score: int = Field(default=0, ge=0, le=100, description="Likelihood of manipulative language (0-100).")
     manipulation_tactics: List[str] = Field(default=[], description="Identified manipulative tactics (e.g., gaslighting, guilt-tripping).")
-    manipulation_explanation: str = Field(default="N/A", description="Explanation of manipulative tactics used.")
+    manipulation_explanation: str = Field(default="No manipulation detected.", description="Explanation of manipulative tactics used.")
     example_phrases: List[str] = Field(default=[], description="Specific phrases indicating manipulation.")
 
 class ArgumentAnalysis(BaseModel):
     argument_strengths: List[str] = Field(default=[], description="Speaker's strong points in their arguments.")
     argument_weaknesses: List[str] = Field(default=[], description="Speaker's weak points in their arguments.")
-    overall_argument_coherence_score: int = Field(default=0, ge=0, le=100, description="Overall coherence of the arguments (0-100).")
+    overall_argument_coherence_score: int = Field(default=50, ge=0, le=100, description="Overall coherence of the arguments (0-100).")
 
 class SpeakerAttitude(BaseModel):
     respect_level_score: int = Field(default=50, ge=0, le=100, description="Level of respectfulness in speaker's tone (0-100, high is respectful).")
@@ -77,13 +96,39 @@ class EnhancedUnderstanding(BaseModel):
     unverified_claims: List[str] = Field(default=[], description="Claims made by the speaker that may require fact-checking.")
 
 class SessionInsights(BaseModel):
-    consistency_analysis: str
-    behavioral_evolution: str
-    risk_trajectory: str
-    conversation_dynamics: str
+    consistency_analysis: str = Field(..., description="Analysis of consistency patterns across session interactions.")
+    behavioral_evolution: str = Field(..., description="How speaker behavior has evolved throughout the session.")
+    risk_trajectory: str = Field(..., description="Trend analysis of risk levels across the session.")
+    conversation_dynamics: str = Field(..., description="Analysis of conversation flow and interaction patterns.")
+
+class AudioAnalysis(BaseModel):
+    vocal_stress_indicators: List[str] = Field(default=[], description="Indicators of vocal stress detected in the audio.")
+    pitch_analysis: str = Field(default="Audio analysis not available for text input.", description="Analysis of pitch variations and consistency.")
+    pause_patterns: str = Field(default="Audio analysis not available for text input.", description="Analysis of pauses and their significance.")
+    vocal_confidence_level: int = Field(default=50, ge=0, le=100, description="Confidence level in the speaker's vocal delivery (0-100).")
+    speaking_pace_consistency: str = Field(default="Audio analysis not available for text input.", description="Analysis of speaking pace consistency.")
+    speaking_rate_variations: str = Field(default="Audio analysis not available for text input.", description="Analysis of speaking rate variations.")
+    voice_quality: str = Field(default="Audio analysis not available for text input.", description="Assessment of voice quality and authenticity.")
+    
+# Simple models that match service output
+class QuantitativeMetrics(BaseModel):
+    speech_rate_words_per_minute: int = Field(default=0, description="Estimated speech rate in words per minute.")
+    formality_score: int = Field(default=50, ge=0, le=100, description="Formality score (0-100) based on formal language usage.")
+    hesitation_count: int = Field(default=0, description="Number of hesitation markers detected.")
+    filler_word_frequency: int = Field(default=0, description="Frequency of filler words per 100 words.")
+    repetition_count: int = Field(default=0, description="Number of word repetitions detected.")
+    sentence_length_variability: int = Field(default=50, ge=0, le=100, description="Variability in sentence lengths (0-100).")
+    vocabulary_complexity: int = Field(default=50, ge=0, le=100, description="Complexity of vocabulary used (0-100).")
+    
+
+
+
+
+
 
 class AnalyzeResponse(BaseModel):
     session_id: str = Field(..., description="Unique identifier for the conversation session.")
+    speaker_name: str = Field(..., description="Name or identifier of the speaker.")
     transcript: str = Field(..., description="Transcribed text from the audio.")
     audio_quality: AudioQualityMetrics = Field(..., description="Metrics related to the audio quality.")
     emotion_analysis: List[EmotionScore] = Field(..., description="List of detected emotions and their scores.")
@@ -95,13 +140,28 @@ class AnalyzeResponse(BaseModel):
     recommendations: List[str] = Field(..., description="Actionable recommendations based on the analysis.")
     linguistic_analysis: LinguisticAnalysis = Field(..., description="Analysis of linguistic patterns.")
     risk_assessment: RiskAssessment = Field(..., description="Risk assessment details.")
+    
+    # Enhanced analysis dimensions (complex objects)
     session_insights: Optional[SessionInsights] = Field(None, description="Insights based on conversation history within the session.")
-    # Adding new optional analysis dimension fields
     manipulation_assessment: Optional[ManipulationAssessment] = Field(None, description="Assessment of manipulative language and tactics.")
     argument_analysis: Optional[ArgumentAnalysis] = Field(None, description="Analysis of argument strength, weaknesses, and coherence.")
     speaker_attitude: Optional[SpeakerAttitude] = Field(None, description="Evaluation of speaker's attitude, including respect and sarcasm.")
     enhanced_understanding: Optional[EnhancedUnderstanding] = Field(None, description="Deeper insights like inconsistencies, evasiveness, and follow-up questions.")
+    audio_analysis: Optional[AudioAnalysis] = Field(None, description="Analysis of audio quality and speaker's vocal patterns.")
+    quantitative_metrics: Optional[QuantitativeMetrics] = Field(None, description="Quantitative metrics extracted from linguistic analysis.")
+    
+    # Simple string/list fields for new analysis areas (matching actual service output)
+    conversation_flow: Optional[str] = Field(None, description="Analysis of conversation flow and dynamics.")
+    behavioral_patterns: Optional[str] = Field(None, description="Analysis of behavioral patterns within the conversation.")
+    verification_suggestions: Optional[List[str]] = Field(None, description="Suggestions for verification and fact-checking.")
+    
+    # Legacy/compatibility fields
+    overall_risk: Optional[str] = Field(None, description="Overall risk level (low/medium/high) based on all analysis.")
+    deception_flags: Optional[List[str]] = Field(None, description="Overall deception flags (legacy, if still used).")
+    
 
+
+    
 class NewSessionResponse(BaseModel):
     session_id: str = Field(..., description="Unique identifier for the newly created session.")
     message: str = Field(..., description="Confirmation message.")
@@ -122,3 +182,4 @@ class DeleteSessionResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str = Field(..., description="Detailed error message.")
+

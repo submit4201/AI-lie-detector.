@@ -69,48 +69,7 @@ const ArgumentAnalysisCard = ({ analysis }) => {
           )}
         </div>
       </CardContent>
-    </Card>
-  );
-};
-              <div className="w-full bg-gray-700 rounded-full h-2.5 mr-3">
-                <div
-                  className="bg-blue-500 h-2.5 rounded-full"
-                  style={{ width: `${overall_argument_coherence_score}%` }}
-                ></div>
-              </div>
-              <span className="text-blue-200 font-bold">{overall_argument_coherence_score}/100</span>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="text-md font-semibold text-green-300 mb-2">Strengths</h4>
-            {argument_strengths.length > 0 ? (
-              <ul className="space-y-1 list-disc list-inside pl-1">
-                {argument_strengths.map((strength, index) => (
-                  <ListItem key={index} item={strength} colorClass="text-green-200" />
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-400 text-sm">None identified.</p>
-            )}
-          </div>
-
-          <div>
-            <h4 className="text-md font-semibold text-red-300 mb-2">Weaknesses</h4>
-            {argument_weaknesses.length > 0 ? (
-              <ul className="space-y-1 list-disc list-inside pl-1">
-                {argument_weaknesses.map((weakness, index) => (
-                  <ListItem key={index} item={weakness} colorClass="text-red-200" />
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-400 text-sm">None identified.</p>
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+    </Card>  );
 };
 
 export default ArgumentAnalysisCard;
