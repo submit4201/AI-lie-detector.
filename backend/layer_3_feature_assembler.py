@@ -19,7 +19,7 @@ def assemble_feature_vector(audio_path: str) -> Dict[str, Any]:
         return feature_vector
 
     except Exception as e:
-        raise RuntimeError(f"Failed to assemble feature vector: {e}")
+        raise RuntimeError(f"Failed to assemble feature vector: {e}") from e
 
 def assemble_feature_vector_from_data(audio_data: bytes, sample_rate: int, channels: int) -> Dict[str, Any]:
     """
