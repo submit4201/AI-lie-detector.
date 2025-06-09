@@ -44,7 +44,7 @@ def test_enhanced_patterns():
     ]
     
     for test_case in test_cases:
-        print(f"\n🧪 Testing: {test_case['name']}")
+        print(f"\n[TEST] Testing: {test_case['name']}")
         print(f"Text: {test_case['text']}")
         
         # Create audio file
@@ -63,7 +63,7 @@ def test_enhanced_patterns():
                     result = response.json()
                     ling = result.get("linguistic_analysis", {})
                     
-                    print(f"📊 Results:")
+                    print(f"[DATA] Results:")
                     print(f"  Word Count: {ling.get('word_count', 'N/A')}")
                     print(f"  Hesitation Count: {ling.get('hesitation_count', 'N/A')}")
                     print(f"  Qualifier Count: {ling.get('qualifier_count', 'N/A')}")
@@ -73,13 +73,13 @@ def test_enhanced_patterns():
                     print(f"  Confidence Ratio: {ling.get('confidence_ratio', 'N/A')}")
                     
                     # Verify expectations
-                    print(f"✅ Expected: {test_case['expected']}")
+                    print(f"[PASS] Expected: {test_case['expected']}")
                     
                 else:
-                    print(f"❌ API Error: {response.status_code} - {response.text}")
+                    print(f"[FAIL] API Error: {response.status_code} - {response.text}")
                     
         except Exception as e:
-            print(f"❌ Test Error: {e}")
+            print(f"[FAIL] Test Error: {e}")
         
         finally:
             # Cleanup

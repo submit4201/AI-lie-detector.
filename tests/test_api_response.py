@@ -13,13 +13,13 @@ def test_api_response():
             files = {"audio": ("Recording.wav", audio_file, "audio/wav")}
             data = {"session_id": "test_session"}
             
-            print("🚀 Sending request to API...")
+            print("[LAUNCH] Sending request to API...")
             response = requests.post(url, files=files, data=data)
             
             if response.status_code == 200:
                 result = response.json()
-                print("✅ API Response received successfully!")
-                print("\n📊 Checking linguistic_analysis structure:")
+                print("[PASS] API Response received successfully!")
+                print("\n[DATA] Checking linguistic_analysis structure:")
                 
                 if "linguistic_analysis" in result:
                     ling_analysis = result["linguistic_analysis"]
@@ -34,19 +34,19 @@ def test_api_response():
                         "hesitation_rate", "confidence_ratio"
                     ]
                     
-                    print("\n📈 Quantitative Metrics:")
+                    print("\n[PROGRESS] Quantitative Metrics:")
                     for field in quantitative_fields:
                         value = ling_analysis.get(field, "MISSING")
                         print(f"    {field}: {value}")
                     
-                    print("\n📝 Descriptive Fields:")
+                    print("\n[NOTE] Descriptive Fields:")
                     descriptive_fields = ["speech_patterns", "word_choice", "emotional_consistency", "detail_level"]
                     for field in descriptive_fields:
                         value = ling_analysis.get(field, "MISSING")
                         print(f"    {field}: {value[:100]}..." if isinstance(value, str) and len(value) > 100 else f"    {field}: {value}")
                 
                 else:
-                    print("  ❌ linguistic_analysis field missing from response!")
+                    print("  [FAIL] linguistic_analysis field missing from response!")
                     print(f"  Available fields: {list(result.keys())}")
                 
                 # Save full response for inspection
@@ -55,13 +55,13 @@ def test_api_response():
                 print(f"\n💾 Full response saved to api_response_debug.json")
                 
             else:
-                print(f"❌ API request failed with status {response.status_code}")
+                print(f"[FAIL] API request failed with status {response.status_code}")
                 print(f"Error: {response.text}")
                 
     except FileNotFoundError:
-        print("❌ Recording.wav not found! Please ensure the audio file exists.")
+        print("[FAIL] Recording.wav not found! Please ensure the audio file exists.")
     except Exception as e:
-        print(f"❌ Error testing API: {e}")
+        print(f"[FAIL] Error testing API: {e}")
 
 if __name__ == "__main__":
     test_api_response()

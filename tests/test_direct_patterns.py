@@ -38,13 +38,13 @@ def test_patterns():
     ]
     
     for test_case in test_cases:
-        print(f"\n🧪 Testing: {test_case['name']}")
+        print(f"\n[TEST] Testing: {test_case['name']}")
         print(f"Text: {test_case['text']}")
         print("=" * 80)
         
         result = analyze_linguistic_patterns(test_case['text'], test_case['duration'])
         
-        print(f"📊 Quantitative Metrics:")
+        print(f"[DATA] Quantitative Metrics:")
         print(f"  Word Count: {result.get('word_count', 'N/A')}")
         print(f"  Hesitation Count: {result.get('hesitation_count', 'N/A')}")
         print(f"  Qualifier Count: {result.get('qualifier_count', 'N/A')}")

@@ -1,287 +1,334 @@
 """
 Linguistic Analysis Service
-Provides quantitative linguistic analysis for transcribed text
+Provides quantitative linguistic analysis and LLM-based interpretation.
 """
 import re
 import logging
-from typing import Dict, Any, List
+import json
+from typing import Dict, Any, Optional, Tuple
+
+from ..models import NumericalLinguisticMetrics, LinguisticAnalysis
+from ..services.gemini_service import GeminiService
 
 logger = logging.getLogger(__name__)
 
-def analyze_linguistic_patterns(transcript: str, duration: float = None) -> Dict[str, Any]:
+# Define patterns for hesitation markers and other filler/hesitation words
+# Regex patterns are defined as regular strings; backslashes are escaped for Python, then for regex.
+# So \\b becomes \b for regex engine.
+HESITATION_MARKER_PATTERN = '\\b(um|uh|er|ah)\\b'
+
+# Broader hesitation/filler words, EXCLUDING the markers above which are counted separately
+# what's -> what\'s in the string literal
+FILLER_WORD_PATTERNS_LIST = [
+    '\\b(like|you know|well|so|actually|basically|literally|totally|really|just|i mean|you see)\\b',
+    '\\b(let me think|how do i say|what\'s the word|you understand|if you will|sort of speak)\\b'
+]
+COMBINED_FILLER_PATTERN = '(' + '|'.join(FILLER_WORD_PATTERNS_LIST) + ')'
+
+QUALIFIER_PATTERN = '\\b(maybe|perhaps|might|could|possibly|probably|sort of|kind of|i think|i guess|i believe|i suppose|somewhat|rather|fairly|quite|seems like|appears to|tends to|usually|sometimes|often|occasionally|potentially|presumably|allegedly|supposedly|apparently)\\b'
+CERTAINTY_PATTERN = '\\b(definitely|certainly|absolutely|sure|confident|know|always|never|exactly|clearly|obviously|undoubtedly|unquestionably|positively|guaranteed|without doubt|for certain|no doubt|100 percent|completely|totally|entirely|perfectly)\\b'
+IMMEDIATE_REPETITION_PATTERN = '\\b(\\w+)\\s+\\1\\b'
+
+# Formality patterns
+FORMAL_TRANSITIONS_PATTERN = '\\b(furthermore|however|nevertheless|therefore|consequently|moreover|additionally|subsequently|accordingly|thus|hence|whereas|albeit|notwithstanding|indeed|inasmuch as|insofar as|heretofore|henceforth|notwithstanding)\\b'
+FORMAL_COURTESY_PATTERN = '\\b(sir|madam|please|thank you|kindly|respectfully|sincerely|cordially|graciously|humbly|your honor|your excellency|distinguished|esteemed)\\b'
+FORMAL_LEGAL_PATTERN = '\\b(pursuant to|in accordance with|with regard to|concerning|regarding|herein|thereof|whereby|wherein|whereof|heretofore|aforementioned|subsequent to|prior to|in lieu of|notwithstanding)\\b'
+FORMAL_ACADEMIC_PATTERN = '\\b(substantially|significantly|predominantly|fundamentally|essentially|particularly|specifically|generally|typically|consistently|primarily|principally|ultimately|comprehensively)\\b'
+FORMAL_EXPRESSIONS_PATTERN = '\\b(allow me to|permit me to|if I may|with your permission|I would like to express|I wish to convey|it is my understanding|it has come to my attention|I am compelled to|I feel obligated to)\\b'
+
+# Informality patterns
+INFORMAL_CASUAL_PATTERN = '\\b(yeah|yep|nah|yup|uh-huh|mm-hmm|nope|yep|sure thing|no way|for real|totally|whatever|awesome|cool|sweet|nice|dude|buddy|man|bro|sis)\\b'
+INFORMAL_CONTRACTIONS_PATTERN = '\\b(gonna|wanna|gotta|kinda|sorta|dunno|shoulda|woulda|coulda|lemme|gimme|betcha|whatcha|lookin|doin|nothin|somethin|anythin|everythin)\\b'
+STANDARD_CONTRACTIONS_PATTERN = '\\b(ain\'t|can\'t|won\'t|shouldn\'t|wouldn\'t|couldn\'t|isn\'t|aren\'t|wasn\'t|weren\'t|haven\'t|hasn\'t|hadn\'t|don\'t|doesn\'t|didn\'t|I\'m|you\'re|he\'s|she\'s|it\'s|we\'re|they\'re|I\'ve|you\'ve|we\'ve|they\'ve|I\'ll|you\'ll|he\'ll|she\'ll|we\'ll|they\'ll|I\'d|you\'d|he\'d|she\'d|we\'d|they\'d)\\b'
+INFORMAL_SLANG_PATTERN = '\\b(ok|okay|alright|right on|no biggie|no prob|my bad|oh well|so what|big deal|kinda like|sorta like|you know what I mean|if you know what I mean)\\b'
+
+CHARS_TO_STRIP_FROM_WORDS = ".,!?\'"
+
+def analyze_numerical_linguistic_metrics(transcript: str, duration: Optional[float] = None) -> Dict[str, Any]:
     """
-    Analyze linguistic patterns in the transcript to provide quantitative metrics
-    that support deception detection and behavioral analysis.
-    
+    Analyze linguistic patterns in the transcript to provide quantitative metrics.
+    This function performs direct calculations and does not call any LLM.
+
     Args:
-        transcript (str): The transcribed text to analyze
-        duration (float, optional): Audio duration in seconds for rate calculations
-    
+        transcript (str): The transcribed text to analyze.
+        duration (float, optional): Audio duration in seconds for rate calculations.
+
     Returns:
-        Dict containing linguistic analysis metrics
+        Dict containing numerical linguistic metrics.
     """
     if not transcript or not transcript.strip():
-        return get_default_linguistic_analysis()
-    
+        return NumericalLinguisticMetrics().model_dump()
+
     try:
-        # Basic text statistics
         words = transcript.split()
         word_count = len(words)
-          # Hesitation patterns - Enhanced detection
-        hesitation_words = re.findall(r'\b(um|uh|er|ah|like|you know|well|so|actually|basically|literally|totally|really|just|i mean|you see|let me think|how do i say|what\'s the word|you understand|if you will|sort of speak)\b', transcript, re.IGNORECASE)
-        hesitation_count = len(hesitation_words)
-          # Qualifier usage (uncertainty indicators) - Enhanced patterns
-        qualifiers = re.findall(r'\b(maybe|perhaps|might|could|possibly|probably|sort of|kind of|i think|i guess|i believe|i suppose|somewhat|rather|fairly|quite|seems like|appears to|tends to|usually|sometimes|often|occasionally|potentially|presumably|allegedly|supposedly|apparently)\b', transcript, re.IGNORECASE)
+        if word_count == 0:
+            return NumericalLinguisticMetrics().model_dump()
+
+        hesitation_markers = re.findall(HESITATION_MARKER_PATTERN, transcript, re.IGNORECASE)
+        hesitation_marker_count = len(hesitation_markers)
+
+        other_filler_words_match = re.findall(COMBINED_FILLER_PATTERN, transcript, re.IGNORECASE)
+        filler_word_count = 0
+        if other_filler_words_match:
+            # Flatten list of tuples if regex groups are used from the OR construct
+            if isinstance(other_filler_words_match[0], tuple):
+                filler_word_count = len([item for tpl in other_filler_words_match for item in tpl if item])
+            else:
+                filler_word_count = len(other_filler_words_match)
+        
+        qualifiers = re.findall(QUALIFIER_PATTERN, transcript, re.IGNORECASE)
         qualifier_count = len(qualifiers)
+
+        certainty_words = re.findall(CERTAINTY_PATTERN, transcript, re.IGNORECASE)
+        certainty_indicator_count = len(certainty_words)
+
+        immediate_repetitions = re.findall(IMMEDIATE_REPETITION_PATTERN, transcript, re.IGNORECASE)
         
-        # Certainty indicators - Enhanced patterns
-        certainty_words = re.findall(r'\b(definitely|certainly|absolutely|sure|confident|know|always|never|exactly|clearly|obviously|undoubtedly|unquestionably|positively|guaranteed|without doubt|for certain|no doubt|100 percent|completely|totally|entirely|perfectly)\b', transcript, re.IGNORECASE)
-        certainty_count = len(certainty_words)        # Formality indicators - Comprehensive Enhanced patterns
-        # Professional/Academic transitions and conjunctions
-        formal_transitions = re.findall(r'\b(furthermore|however|nevertheless|therefore|consequently|moreover|additionally|subsequently|accordingly|thus|hence|whereas|albeit|notwithstanding|indeed|inasmuch as|insofar as|heretofore|henceforth|notwithstanding)\b', transcript, re.IGNORECASE)
-        
-        # Professional courtesy and politeness
-        formal_courtesy = re.findall(r'\b(sir|madam|please|thank you|kindly|respectfully|sincerely|cordially|graciously|humbly|your honor|your excellency|distinguished|esteemed)\b', transcript, re.IGNORECASE)
-        
-        # Legal/Business formal language
-        formal_legal = re.findall(r'\b(pursuant to|in accordance with|with regard to|concerning|regarding|herein|thereof|whereby|wherein|whereof|heretofore|aforementioned|subsequent to|prior to|in lieu of|notwithstanding)\b', transcript, re.IGNORECASE)
-        
-        # Academic/Professional qualifiers
-        formal_academic = re.findall(r'\b(substantially|significantly|predominantly|fundamentally|essentially|particularly|specifically|generally|typically|consistently|primarily|principally|ultimately|comprehensively)\b', transcript, re.IGNORECASE)
-        
-        # Formal expressions and phrases
-        formal_expressions = re.findall(r'\b(allow me to|permit me to|if I may|with your permission|I would like to express|I wish to convey|it is my understanding|it has come to my attention|I am compelled to|I feel obligated to)\b', transcript, re.IGNORECASE)
-        
-        # Total formal words
-        formal_words = formal_transitions + formal_courtesy + formal_legal + formal_academic + formal_expressions
-        
-        # Informal indicators - Enhanced patterns
-        # Casual responses and interjections
-        informal_casual = re.findall(r'\b(yeah|yep|nah|yup|uh-huh|mm-hmm|nope|yep|sure thing|no way|for real|totally|whatever|awesome|cool|sweet|nice|dude|buddy|man|bro|sis)\b', transcript, re.IGNORECASE)
-        
-        # Contractions and casual language
-        informal_contractions = re.findall(r'\b(gonna|wanna|gotta|kinda|sorta|dunno|shoulda|woulda|coulda|lemme|gimme|betcha|whatcha|lookin|doin|nothin|somethin|anythin|everythin)\b', transcript, re.IGNORECASE)
-        
-        # Standard contractions (common but reduce formality)
-        standard_contractions = re.findall(r'\b(ain\'t|can\'t|won\'t|shouldn\'t|wouldn\'t|couldn\'t|isn\'t|aren\'t|wasn\'t|weren\'t|haven\'t|hasn\'t|hadn\'t|don\'t|doesn\'t|didn\'t|I\'m|you\'re|he\'s|she\'s|it\'s|we\'re|they\'re|I\'ve|you\'ve|we\'ve|they\'ve|I\'ll|you\'ll|he\'ll|she\'ll|we\'ll|they\'ll|I\'d|you\'d|he\'d|she\'d|we\'d|they\'d)\b', transcript, re.IGNORECASE)
-        
-        # Slang and very informal expressions
-        informal_slang = re.findall(r'\b(ok|okay|alright|right on|no biggie|no prob|my bad|oh well|so what|big deal|kinda like|sorta like|you know what I mean|if you know what I mean)\b', transcript, re.IGNORECASE)
-        
-        # Total informal words with different weights
-        casual_informal = informal_casual + informal_contractions + informal_slang
-        standard_informal = standard_contractions        # Balanced formality calculation with realistic scaling
-        formal_ratio = len(formal_words) / max(word_count, 1)
-        casual_penalty = len(casual_informal) / max(word_count, 1)
-        standard_penalty = len(standard_informal) / max(word_count, 1)
-        
-        # Realistic calculation with baseline adjustment:
-        # - Start with baseline of 50 (neutral)
-        # - Formal words: add 500x weight (strong positive impact)
-        # - Casual/slang: subtract 250x penalty (moderate negative impact)  
-        # - Standard contractions: subtract 100x penalty (light negative impact)
-        baseline = 50
-        formal_boost = formal_ratio * 500
-        casual_reduction = casual_penalty * 250
-        standard_reduction = standard_penalty * 100
-        
-        formality_score = max(0, min(100, 
-            baseline + formal_boost - casual_reduction - standard_reduction
-        ))
-        
-        # Filler words (stress indicators)
-        filler_words = re.findall(r'\b(um|uh|er|ah)\b', transcript, re.IGNORECASE)
-        filler_count = len(filler_words)
-          # Word repetitions (possible stress/deception indicator)
-        # Check for immediate word repetitions
-        immediate_repetitions = re.findall(r'\b(\w+)\s+\1\b', transcript, re.IGNORECASE)
-        
-        # Check for phrase repetitions (2-4 words)
-        phrase_repetitions = []
-        words_clean = [word.strip('.,!?') for word in words]
+        phrase_repetitions_list = []
+        words_clean = [word.strip(CHARS_TO_STRIP_FROM_WORDS) for word in words]
         for i in range(len(words_clean) - 1):
             for phrase_len in range(2, min(5, len(words_clean) - i + 1)):
                 phrase = ' '.join(words_clean[i:i+phrase_len]).lower()
-                rest_text = ' '.join(words_clean[i+phrase_len:]).lower()
-                if phrase in rest_text and len(phrase.split()) >= 2:
-                    phrase_repetitions.append(phrase)
-                    break
+                if len(phrase.split()) < 2: continue
+                rest_text_for_phrase_search = ' '.join(words_clean[i+phrase_len:]).lower()
+                if phrase in rest_text_for_phrase_search:
+                    is_new_repetition = True
+                    for existing_rep in phrase_repetitions_list:
+                        if phrase in existing_rep or existing_rep in phrase:
+                            is_new_repetition = False
+                            break
+                    if is_new_repetition:
+                        phrase_repetitions_list.append(phrase)
+        repetition_count = len(immediate_repetitions) + len(phrase_repetitions_list)
+
+        avg_word_length_chars = sum(len(word.strip(CHARS_TO_STRIP_FROM_WORDS)) for word in words) / word_count
         
-        repetition_count = len(immediate_repetitions) + len(phrase_repetitions)
-        
-        # Average word length (complexity indicator)
-        avg_word_length = sum(len(word.strip('.,!?')) for word in words) / max(word_count, 1)
-        
-        # Sentence count (complexity indicator)
         sentences = re.split(r'[.!?]+', transcript)
-        sentence_count = len([s for s in sentences if s.strip()])
-        avg_words_per_sentence = word_count / max(sentence_count, 1)
-        
-        # Calculate rates if duration is provided
+        valid_sentences = [s for s in sentences if s.strip()]
+        sentence_count = len(valid_sentences) if len(valid_sentences) > 0 else 1
+        avg_sentence_length_words = word_count / sentence_count
+
         speech_rate_wpm = None
-        hesitation_rate = None
+        hesitation_rate_hpm = None
         if duration and duration > 0:
             speech_rate_wpm = (word_count / duration) * 60
-            hesitation_rate = (hesitation_count / duration) * 60  # hesitations per minute
-          # Complexity score (0-100 based on various factors)
-        # Factor 1: Average word length (longer words = more complex)
-        word_length_factor = min(100, avg_word_length * 15)
+            hesitation_rate_hpm = (hesitation_marker_count / duration) * 60
+
+        unique_word_list = set(word.lower().strip(CHARS_TO_STRIP_FROM_WORDS) for word in words)
+        unique_word_count = len(unique_word_list)
+        vocabulary_richness_ttr = unique_word_count / word_count if word_count > 0 else 0.0
         
-        # Factor 2: Sentence structure (longer sentences = more complex)
-        sentence_length_factor = min(100, avg_words_per_sentence * 3)
+        confidence_metric_ratio = None
+        if qualifier_count + certainty_indicator_count > 0:
+            confidence_metric_ratio = certainty_indicator_count / (qualifier_count + certainty_indicator_count)
+
+        formal_transitions_c = len(re.findall(FORMAL_TRANSITIONS_PATTERN, transcript, re.IGNORECASE))
+        formal_courtesy_c = len(re.findall(FORMAL_COURTESY_PATTERN, transcript, re.IGNORECASE))
+        formal_legal_c = len(re.findall(FORMAL_LEGAL_PATTERN, transcript, re.IGNORECASE))
+        formal_academic_c = len(re.findall(FORMAL_ACADEMIC_PATTERN, transcript, re.IGNORECASE))
+        formal_expressions_c = len(re.findall(FORMAL_EXPRESSIONS_PATTERN, transcript, re.IGNORECASE))
+        formal_words_count = formal_transitions_c + formal_courtesy_c + formal_legal_c + formal_academic_c + formal_expressions_c
         
-        # Factor 3: Vocabulary diversity (unique words ratio)
-        unique_words = len(set(word.lower().strip('.,!?') for word in words))
-        vocabulary_diversity = (unique_words / max(word_count, 1)) * 100
+        informal_casual_c = len(re.findall(INFORMAL_CASUAL_PATTERN, transcript, re.IGNORECASE))
+        informal_contractions_c = len(re.findall(INFORMAL_CONTRACTIONS_PATTERN, transcript, re.IGNORECASE))
+        standard_contractions_c = len(re.findall(STANDARD_CONTRACTIONS_PATTERN, transcript, re.IGNORECASE))
+        informal_slang_c = len(re.findall(INFORMAL_SLANG_PATTERN, transcript, re.IGNORECASE))
         
-        # Factor 4: Hesitation penalty (more hesitations = less complexity)
-        hesitation_penalty = min(50, (hesitation_count / max(word_count, 1)) * 1000)
+        formal_ratio = formal_words_count / word_count if word_count > 0 else 0
+        casual_penalty_val = (informal_casual_c + informal_contractions_c + informal_slang_c) / word_count if word_count > 0 else 0
+        standard_penalty_val = standard_contractions_c / word_count if word_count > 0 else 0
         
-        # Factor 5: Qualifier/certainty balance (balanced = more complex)
-        certainty_balance = min(25, abs(certainty_count - qualifier_count) * 5)
+        baseline = 50
+        formal_boost = formal_ratio * 500
+        casual_reduction = casual_penalty_val * 250
+        standard_reduction = standard_penalty_val * 100
+        formality_score_calculated = max(0, min(100, baseline + formal_boost - casual_reduction - standard_reduction))
+
+        word_length_factor = min(100, avg_word_length_chars * 15)
+        sentence_length_factor = min(100, avg_sentence_length_words * 3)
+        vocabulary_diversity_factor = vocabulary_richness_ttr * 100
         
-        complexity_factors = [
-            word_length_factor,
-            sentence_length_factor, 
-            vocabulary_diversity,
-            certainty_balance
-        ]
-        complexity_base = sum(complexity_factors) / len(complexity_factors)
-        complexity_score = max(0, complexity_base - hesitation_penalty)
+        total_hesitations_fillers = hesitation_marker_count + filler_word_count
+        hesitation_filler_penalty_for_complexity = min(50, (total_hesitations_fillers / word_count) * 1000 if word_count > 0 else 0)
         
-        # Confidence indicators ratio
-        confidence_ratio = certainty_count / max(qualifier_count + certainty_count, 1)
+        certainty_balance_factor = min(25, abs(certainty_indicator_count - qualifier_count) * 5)
         
+        complexity_factors_sum = word_length_factor + sentence_length_factor + vocabulary_diversity_factor + certainty_balance_factor
+        complexity_base = complexity_factors_sum / 4
+        complexity_score_calculated = max(0, min(100, complexity_base - hesitation_filler_penalty_for_complexity))
+
         return {
             "word_count": word_count,
-            "hesitation_count": hesitation_count,
+            "unique_word_count": unique_word_count,
+            "hesitation_marker_count": hesitation_marker_count,
+            "filler_word_count": filler_word_count,
             "qualifier_count": qualifier_count,
-            "certainty_count": certainty_count,
-            "filler_count": filler_count,
+            "certainty_indicator_count": certainty_indicator_count,
             "repetition_count": repetition_count,
-            "formality_score": round(formality_score, 1),
-            "complexity_score": round(complexity_score, 1),
-            "avg_word_length": round(avg_word_length, 1),
-            "avg_words_per_sentence": round(avg_words_per_sentence, 1),
             "sentence_count": sentence_count,
-            "speech_rate_wpm": round(speech_rate_wpm, 1) if speech_rate_wpm else None,
-            "hesitation_rate": round(hesitation_rate, 1) if hesitation_rate else None,
-            "confidence_ratio": round(confidence_ratio, 2),
-            
-            # Descriptive analysis for backwards compatibility
-            "speech_patterns": generate_speech_patterns_description(
-                word_count, hesitation_count, speech_rate_wpm, complexity_score
-            ),
-            "word_choice": generate_word_choice_description(
-                avg_word_length, formality_score, qualifier_count, certainty_count
-            ),
-            "emotional_consistency": generate_emotional_consistency_description(
-                hesitation_count, qualifier_count, confidence_ratio
-            ),
-            "detail_level": generate_detail_level_description(
-                avg_words_per_sentence, complexity_score, word_count
-            )
+            "avg_word_length_chars": round(avg_word_length_chars, 1),
+            "avg_sentence_length_words": round(avg_sentence_length_words, 1),
+            "speech_rate_wpm": round(speech_rate_wpm, 1) if speech_rate_wpm is not None else None,
+            "hesitation_rate_hpm": round(hesitation_rate_hpm, 1) if hesitation_rate_hpm is not None else None,
+            "vocabulary_richness_ttr": round(vocabulary_richness_ttr, 2),
+            "confidence_metric_ratio": round(confidence_metric_ratio, 2) if confidence_metric_ratio is not None else None,
+            "formality_score_calculated": round(formality_score_calculated, 1),
+            "complexity_score_calculated": round(complexity_score_calculated, 1),
         }
-        
+
     except Exception as e:
-        logger.error(f"Error in linguistic analysis: {e}")
-        return get_default_linguistic_analysis()
+        logger.error(f"Error in numerical linguistic metrics calculation: {e}", exc_info=True)
+        return NumericalLinguisticMetrics().model_dump()
 
-def generate_speech_patterns_description(word_count: int, hesitation_count: int, 
-                                       speech_rate_wpm: float = None, complexity_score: float = 50) -> str:
-    """Generate descriptive text for speech patterns based on metrics"""
-    
-    if speech_rate_wpm:
-        if speech_rate_wpm > 160:
-            rate_desc = "very rapid speech pace"
-        elif speech_rate_wpm > 120:
-            rate_desc = "moderate to fast speech pace"
-        elif speech_rate_wpm > 80:
-            rate_desc = "normal speech pace"
+def get_default_numerical_linguistic_metrics() -> NumericalLinguisticMetrics:
+    """Return default NumericalLinguisticMetrics model."""
+    return NumericalLinguisticMetrics()
+
+def get_default_linguistic_analysis_interpretation() -> LinguisticAnalysis:
+    """Return default LinguisticAnalysis model."""
+    return LinguisticAnalysis()
+
+async def interpret_linguistic_metrics_with_gemini(
+    numerical_metrics: NumericalLinguisticMetrics,
+    transcript: str,
+    gemini_service: GeminiService,
+    session_context: Optional[Dict[str, Any]] = None
+) -> LinguisticAnalysis:
+    """
+    Uses Gemini to interpret the calculated numerical linguistic metrics and provide
+    a qualitative linguistic analysis.
+
+    Args:
+        numerical_metrics: Calculated numerical metrics.
+        transcript: The full transcript for context.
+        gemini_service: Instance of GeminiService.
+        session_context: Optional session context for GeminiService.
+
+    Returns:
+        LinguisticAnalysis model populated by Gemini.
+    """
+    if not transcript.strip():
+        return get_default_linguistic_analysis_interpretation()
+
+    numerical_metrics_dict = numerical_metrics.model_dump(exclude_none=True)
+    numerical_metrics_json_string = json.dumps(numerical_metrics_dict, indent=2)
+
+    # Note: ''' in the prompt string below are escaped as \'\'\' for the tool argument
+    prompt = f"""You are an expert linguistic analyst. Your task is to interpret a set of pre-calculated numerical linguistic metrics
+derived from a text transcript. Based on these metrics AND the full transcript, provide a comprehensive linguistic analysis.
+
+The full transcript is:
+\'\'\'
+{transcript}
+\'\'\'
+
+The pre-calculated Numerical Linguistic Metrics are:
+```json
+{numerical_metrics_json_string}
+```
+
+Please generate a JSON object that strictly adheres to the Pydantic model structure for 'LinguisticAnalysis' provided below.
+For each field in the 'LinguisticAnalysis' model, provide a thoughtful interpretation.
+- For fields ending with '_analysis' (e.g., 'word_count_analysis'), explain the significance of the corresponding numerical metric in the context of the provided transcript and general communication principles.
+- For descriptive fields (e.g., 'speech_patterns_description'), synthesize information from relevant metrics and the overall transcript to provide a qualitative assessment.
+- For 'pause_occurrence_analysis', consider pause indicators in the transcript (e.g., '...', long silences if identifiable) and discuss their potential impact.
+- The 'overall_linguistic_style_summary' should be a comprehensive summary of the speaker's linguistic style and its implications, drawing from all available data.
+
+If a specific aspect cannot be reliably analyzed from the provided data, use a default message like "Sufficient data not available for a detailed analysis of [aspect name]." for that field, but try to provide insights where possible.
+
+Pydantic Model for 'LinguisticAnalysis':
+{{
+    "speech_patterns_description": "LLM analysis of speech rhythm, pace, pauses not covered by specific counts. Consider overall flow, rhythm, and use of pauses evident in the transcript.",
+    "word_choice_description": "LLM analysis of vocabulary (e.g., sophistication, specificity, jargon) and phrasing choices, beyond simple counts. Consider if word choice is appropriate for context.",
+    "emotional_consistency_description": "LLM assessment of consistency between language used and potential emotional undertones. Does the language align with a consistent emotional expression, or are there mixed signals?",
+    "detail_level_description": "LLM assessment of whether the level of detail in the transcript is appropriate (e.g., for answering a question, explaining a topic) versus being overly vague or excessively granular.",
+    "word_count_analysis": "Interpret the significance of the word_count ({numerical_metrics_dict.get('word_count', 'N/A')}) in the context of the communication's purpose or length.",
+    "hesitation_marker_analysis": "Interpret the impact of hesitation markers (e.g., um, uh; count: {numerical_metrics_dict.get('hesitation_marker_count', 'N/A')}) on fluency and perceived confidence.",
+    "filler_word_analysis": "Interpret the impact of other filler words (e.g., like, you know; count: {numerical_metrics_dict.get('filler_word_count', 'N/A')}) on clarity and formality.",
+    "qualifier_analysis": "Interpret the impact of uncertainty qualifiers (count: {numerical_metrics_dict.get('qualifier_count', 'N/A')}) on the speaker\\'s assertiveness and the message\\'s perceived certainty.",
+    "certainty_indicator_analysis": "Interpret the impact of certainty indicators (count: {numerical_metrics_dict.get('certainty_indicator_count', 'N/A')}) on the speaker\\'s conviction and the message\\'s forcefulness.",
+    "repetition_analysis": "Interpret word/phrase repetitions (count: {numerical_metrics_dict.get('repetition_count', 'N/A')}). Do they emphasize points, indicate uncertainty, or suggest a lack of preparation?",
+    "sentence_count_analysis": "Interpret the significance of the sentence count ({numerical_metrics_dict.get('sentence_count', 'N/A')}) relative to the word count and overall message length.",
+    "avg_word_length_analysis": "Interpret the average word length ({numerical_metrics_dict.get('avg_word_length_chars', 'N/A')} chars). Does it suggest simple or complex vocabulary?",
+    "avg_sentence_length_analysis": "Interpret the average sentence length ({numerical_metrics_dict.get('avg_sentence_length_words', 'N/A')} words). Does it suggest simple or complex sentence structures? What is its impact on readability?",
+    "speech_rate_analysis": "If speech rate (WPM: {numerical_metrics_dict.get('speech_rate_wpm', 'N/A')}) is available, interpret its impact on clarity, engagement, and perceived speaker energy. If N/A, state that.",
+    "hesitation_rate_analysis": "If hesitation rate (HPM: {numerical_metrics_dict.get('hesitation_rate_hpm', 'N/A')}) is available, interpret its impact on fluency and listener perception. If N/A, state that.",
+    "vocabulary_richness_analysis": "Interpret vocabulary richness (TTR: {numerical_metrics_dict.get('vocabulary_richness_ttr', 'N/A')}). Does it indicate a broad or limited vocabulary for the context?",
+    "confidence_metric_analysis": "Interpret the calculated confidence metric ratio ({numerical_metrics_dict.get('confidence_metric_ratio', 'N/A')}). What does this suggest about the speaker\\'s overall assertiveness vs. caution?",
+    "formality_score_analysis": "Interpret the calculated formality score ({numerical_metrics_dict.get('formality_score_calculated', 'N/A')}/100). Is the language appropriate for a formal/informal setting?",
+    "complexity_score_analysis": "Interpret the calculated linguistic complexity score ({numerical_metrics_dict.get('complexity_score_calculated', 'N/A')}/100). What does this suggest about the cognitive demand or sophistication of the language?",
+    "pause_occurrence_analysis": "Analyze the presence and potential impact of pauses. Look for explicit markers like '...' or infer from context. Discuss their effect on rhythm, emphasis, or potential hesitation.",
+    "overall_linguistic_style_summary": "Provide a comprehensive summary of the speaker\\'s linguistic style, integrating various observations. Describe the overall impression the language conveys (e.g., articulate, hesitant, concise, verbose, formal, casual)."
+}}
+
+Return ONLY the JSON object adhering to the 'LinguisticAnalysis' model structure. Do not add any explanatory text before or after the JSON object.
+"""
+    try:
+        raw_json_output = await gemini_service.query_gemini_for_raw_json(prompt, session_context)
+        if raw_json_output:
+            try:
+                if isinstance(raw_json_output, str):
+                    # Clean potential markdown code block fences
+                    cleaned_json_string = raw_json_output.strip()
+                    if cleaned_json_string.startswith("```json"):
+                        cleaned_json_string = cleaned_json_string[7:]
+                    if cleaned_json_string.endswith("```"):
+                        cleaned_json_string = cleaned_json_string[:-3]
+                    data = json.loads(cleaned_json_string)
+                elif isinstance(raw_json_output, dict):
+                    data = raw_json_output
+                else:
+                    logger.error(f"Unexpected type from Gemini for LinguisticAnalysis: {type(raw_json_output)}")
+                    return get_default_linguistic_analysis_interpretation()
+                return LinguisticAnalysis(**data)
+            except (json.JSONDecodeError, TypeError) as e:
+                logger.error(f"Failed to parse LinguisticAnalysis JSON from Gemini: {e}. Raw output: {raw_json_output}")
+                return get_default_linguistic_analysis_interpretation()
         else:
-            rate_desc = "slow, deliberate speech pace"
-    else:
-        rate_desc = "speech pace analysis pending"
-    
-    hesitation_level = "high" if hesitation_count > 5 else "moderate" if hesitation_count > 2 else "low"
-    complexity_level = "high" if complexity_score > 70 else "moderate" if complexity_score > 40 else "low"
-    
-    return f"Speaker demonstrates {rate_desc} with {hesitation_level} hesitation frequency and {complexity_level} linguistic complexity. " \
-           f"Speech contains {hesitation_count} hesitation markers across {word_count} words, " \
-           f"suggesting {'confident expression' if hesitation_count < 3 else 'some uncertainty or processing time'}."
+            logger.warning("Received no output from Gemini for linguistic interpretation.")
+            return get_default_linguistic_analysis_interpretation()
+    except Exception as e:
+        logger.error(f"Error during Gemini call for linguistic interpretation: {e}", exc_info=True)
+        return get_default_linguistic_analysis_interpretation()
 
-def generate_word_choice_description(avg_word_length: float, formality_score: float, 
-                                   qualifier_count: int, certainty_count: int) -> str:
-    """Generate descriptive text for word choice patterns"""
-    
-    complexity_level = "sophisticated" if avg_word_length > 5 else "moderate" if avg_word_length > 4 else "simple"
-    formality_level = "formal" if formality_score > 20 else "moderately formal" if formality_score > 5 else "casual"
-    
-    if qualifier_count > certainty_count:
-        certainty_desc = "frequent use of qualifying language suggesting uncertainty"
-    elif certainty_count > qualifier_count * 2:
-        certainty_desc = "confident, definitive language patterns"
-    else:
-        certainty_desc = "balanced use of certain and uncertain language"
-    
-    return f"Word choice reflects {complexity_level} vocabulary in a {formality_level} register. " \
-           f"Analysis reveals {certainty_desc}, with {qualifier_count} qualifiers versus {certainty_count} certainty markers."
+async def linguistic_analysis_pipeline(
+    transcript: str,
+    gemini_service: GeminiService,
+    duration: Optional[float] = None,
+    session_context: Optional[Dict[str, Any]] = None
+) -> Tuple[Optional[NumericalLinguisticMetrics], Optional[LinguisticAnalysis]]:
+    """
+    Main linguistic analysis pipeline.
+    1. Calculates numerical linguistic metrics from the transcript.
+    2. Uses Gemini to interpret these metrics and provide qualitative analysis.
 
-def generate_emotional_consistency_description(hesitation_count: int, qualifier_count: int, 
-                                             confidence_ratio: float) -> str:
-    """Generate descriptive text for emotional consistency analysis"""
-    
-    if confidence_ratio > 0.7:
-        consistency_desc = "high emotional consistency with confident expression"
-    elif confidence_ratio > 0.4:
-        consistency_desc = "moderate emotional consistency with some uncertainty"
-    else:
-        consistency_desc = "lower emotional consistency with frequent uncertainty markers"
-    
-    stress_indicators = hesitation_count + qualifier_count
-    stress_level = "elevated" if stress_indicators > 8 else "moderate" if stress_indicators > 4 else "low"
-    
-    return f"Speaker demonstrates {consistency_desc}. Stress indicator analysis shows {stress_level} levels " \
-           f"based on {stress_indicators} total uncertainty/hesitation markers, suggesting " \
-           f"{'potential anxiety or deception concerns' if stress_level == 'elevated' else 'normal communication patterns'}."
+    Args:
+        transcript (str): The transcribed text.
+        gemini_service: Instance of GeminiService.
+        duration (float, optional): Audio duration in seconds.
+        session_context: Optional session context for GeminiService.
 
-def generate_detail_level_description(avg_words_per_sentence: float, complexity_score: float, 
-                                    word_count: int) -> str:
-    """Generate descriptive text for detail level analysis"""
-    
-    if avg_words_per_sentence > 20:
-        structure_desc = "complex, detailed sentence structures"
-    elif avg_words_per_sentence > 12:
-        structure_desc = "moderately complex sentence structures"
-    else:
-        structure_desc = "simple, direct sentence structures"
-    
-    detail_level = "comprehensive" if word_count > 200 else "moderate" if word_count > 100 else "brief"
-    
-    return f"Response provides {detail_level} detail level using {structure_desc}. " \
-           f"Complexity score of {complexity_score:.1f}/100 indicates " \
-           f"{'sophisticated' if complexity_score > 70 else 'appropriate' if complexity_score > 40 else 'simple'} " \
-           f"communication style with average {avg_words_per_sentence:.1f} words per sentence."
+    Returns:
+        A tuple containing (NumericalLinguisticMetrics, LinguisticAnalysis).
+        Returns (None, None) or default models if analysis cannot be performed.
+    """
+    if not transcript or not transcript.strip():
+        logger.warning("Linguistic analysis pipeline: Empty transcript provided.")
+        return get_default_numerical_linguistic_metrics(), get_default_linguistic_analysis_interpretation()
 
-def get_default_linguistic_analysis() -> Dict[str, Any]:
-    """Return default linguistic analysis structure for error cases"""
-    return {
-        "word_count": 0,
-        "hesitation_count": 0,
-        "qualifier_count": 0,
-        "certainty_count": 0,
-        "filler_count": 0,
-        "repetition_count": 0,
-        "formality_score": 0,
-        "complexity_score": 0,
-        "avg_word_length": 0,
-        "avg_words_per_sentence": 0,
-        "sentence_count": 0,
-        "speech_rate_wpm": None,
-        "hesitation_rate": None,
-        "confidence_ratio": 0,
-        "speech_patterns": "Analysis unavailable - insufficient data",
-        "word_choice": "Analysis unavailable - insufficient data", 
-        "emotional_consistency": "Analysis unavailable - insufficient data",
-        "detail_level": "Analysis unavailable - insufficient data"
-    }
+    try:
+        numerical_metrics_dict = analyze_numerical_linguistic_metrics(transcript, duration)
+        numerical_metrics = NumericalLinguisticMetrics(**numerical_metrics_dict)
+        
+        linguistic_interpretation = get_default_linguistic_analysis_interpretation() # Default first
+        if numerical_metrics.word_count > 0:
+            linguistic_interpretation = await interpret_linguistic_metrics_with_gemini(
+                numerical_metrics, transcript, gemini_service, session_context
+            )
+            
+        return numerical_metrics, linguistic_interpretation
+
+    except Exception as e:
+        logger.error(f"Exception in linguistic_analysis_pipeline: {e}", exc_info=True)
+        return get_default_numerical_linguistic_metrics(), get_default_linguistic_analysis_interpretation()

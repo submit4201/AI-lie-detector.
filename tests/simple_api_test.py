@@ -6,24 +6,26 @@ import requests
 import json
 
 def test_api():
-    url = "http://localhost:8000/analyze"
+    url = "http://localhost:8001/analyze"
+    audio_file_path = "h:/New folder/PAPAPAPEAPA/Documents/Videos/Deceptive/trial_lie_009.mp3"
     
     try:
-        with open("Recording.wav", "rb") as audio_file:
-            files = {"audio": ("Recording.wav", audio_file, "audio/wav")}
+        with open(audio_file_path, "rb") as audio_file:
+            files = {"audio": ("trial_lie_009.mp3", audio_file, "audio/mpeg")}
             data = {"session_id": "test_session"}
+            params = {"audio_path": audio_file_path}
             
-            print("🚀 Testing API...")
-            response = requests.post(url, files=files, data=data)
+            print("[LAUNCH] Testing API...")
+            response = requests.post(url, files=files, data=data, params=params)
             
             if response.status_code == 200:
                 result = response.json()
-                print("✅ Success!")
+                print("[PASS] Success!")
                 
                 # Check linguistic analysis
                 if "linguistic_analysis" in result:
                     ling = result["linguistic_analysis"]
-                    print(f"\n📊 Linguistic Analysis Found:")
+                    print(f"\n[DATA] Linguistic Analysis Found:")
                     print(f"  Word Count: {ling.get('word_count', 'N/A')}")
                     print(f"  Hesitation Count: {ling.get('hesitation_count', 'N/A')}")
                     print(f"  Filler Count: {ling.get('filler_count', 'N/A')}")
@@ -36,14 +38,13 @@ def test_api():
                         json.dump(result, f, indent=2)
                     print(f"\n💾 Full response saved to debug_response.json")
                 else:
-                    print("❌ No linguistic_analysis in response")
+                    print("[FAIL] No linguistic_analysis in response")
                     print(f"Available keys: {list(result.keys())}")
             else:
-                print(f"❌ Error {response.status_code}: {response.text}")
+                print(f"[FAIL] Error {response.status_code}: {response.text}")
                 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"[FAIL] Error: {e}")
 
 if __name__ == "__main__":
     test_api()
-3

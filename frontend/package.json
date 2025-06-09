@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start": "vite",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
@@ -22,7 +23,9 @@
     "postcss": "^8.5.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "recharts": "^2.15.3",
+    "react-grid-layout": "^1.5.1",
+    "react-resizable": "^3.0.5",
+    "recharts": "^2.12.7",
     "shadcn": "^2.6.0",
     "tailwind-merge": "^3.3.0"
   },

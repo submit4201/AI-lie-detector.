@@ -12,19 +12,19 @@ from pathlib import Path
 def demo_enhanced_session_insights():
     base_url = "http://localhost:8000"
     
-    print("🚀 Enhanced Session Insights Demo")
+    print("[LAUNCH] Enhanced Session Insights Demo")
     print("=" * 50)
     
     # Create a new session
     print("\n1. Creating new session...")
     response = requests.post(f"{base_url}/session/new")
     if response.status_code != 200:
-        print(f"❌ Failed to create session: {response.status_code}")
+        print(f"[FAIL] Failed to create session: {response.status_code}")
         return
     
     session_data = response.json()
     session_id = session_data["session_id"]
-    print(f"✅ Created session: {session_id}")
+    print(f"[PASS] Created session: {session_id}")
     
     # Simulate multiple analyses with different credibility patterns
     test_scenarios = [
@@ -63,13 +63,13 @@ def demo_enhanced_session_insights():
             available_audio.append(audio_file)
     
     if not available_audio:
-        print("❌ No audio files found for testing")
+        print("[FAIL] No audio files found for testing")
         return
     
     print(f"\n2. Running {len(test_scenarios)} analysis scenarios...")
     
     for i, scenario in enumerate(test_scenarios, 1):
-        print(f"\n   📊 Scenario {i}: {scenario['name']}")
+        print(f"\n   [DATA] Scenario {i}: {scenario['name']}")
         
         # Use available audio files cyclically
         audio_file = available_audio[(i-1) % len(available_audio)]
@@ -90,22 +90,22 @@ def demo_enhanced_session_insights():
                     result = response.json()
                     credibility = result.get('credibility_score', 'N/A')
                     
-                    print(f"      ✅ Analysis complete - Credibility: {credibility}%")
+                    print(f"      [PASS] Analysis complete - Credibility: {credibility}%")
                     
                     # Check for session insights (available from 2nd analysis onwards)
                     if i >= 2 and 'session_insights' in result:
                         insights = result['session_insights']
-                        print(f"      🧠 Session insights generated:")
+                        print(f"      [BRAIN] Session insights generated:")
                         
                         for insight_type, insight_text in insights.items():
                             insight_name = insight_type.replace('_', ' ').title()
                             print(f"         • {insight_name}: {insight_text[:80]}...")
                     
                 else:
-                    print(f"      ❌ Analysis failed: {response.status_code}")
+                    print(f"      [FAIL] Analysis failed: {response.status_code}")
                     
         except Exception as e:
-            print(f"      ❌ Error in scenario {i}: {str(e)}")
+            print(f"      [FAIL] Error in scenario {i}: {str(e)}")
         
         # Small delay between analyses
         time.sleep(1)
@@ -116,12 +116,12 @@ def demo_enhanced_session_insights():
     
     if response.status_code == 200:
         history = response.json()
-        print(f"✅ Session complete with {len(history.get('history', []))} analyses")
+        print(f"[PASS] Session complete with {len(history.get('history', []))} analyses")
         
         # Display session summary
         history_items = history.get('history', [])
         if history_items:
-            print(f"\n📈 Session Summary:")
+            print(f"\n[PROGRESS] Session Summary:")
             print(f"   • Total Analyses: {len(history_items)}")
             
             credibility_scores = [item.get('analysis', {}).get('credibility_score', 0) for item in history_items]
@@ -133,18 +133,18 @@ def demo_enhanced_session_insights():
                 
                 print(f"   • Average Credibility: {avg_credibility:.1f}%")
                 print(f"   • Credibility Trend: {trend:+.1f}% ({initial_score}% → {final_score}%)")
-                print(f"   • Trend Direction: {'📈 Improving' if trend > 10 else '📉 Declining' if trend < -10 else '📊 Stable'}")
+                print(f"   • Trend Direction: {'[PROGRESS] Improving' if trend > 10 else '📉 Declining' if trend < -10 else '[DATA] Stable'}")
         
-        print(f"\n🎯 Enhanced Session Insights Features:")
-        print(f"   ✨ Intelligent AI Analysis (replaces placeholder text)")
-        print(f"   📊 Interactive Analytics Dashboard")
+        print(f"\n[TARGET] Enhanced Session Insights Features:")
+        print(f"   [MAGIC] Intelligent AI Analysis (replaces placeholder text)")
+        print(f"   [DATA] Interactive Analytics Dashboard")
         print(f"   📅 Visual Timeline with Progression")
         print(f"   🎨 Enhanced UI with Gradient Cards")
-        print(f"   📈 Real-time Credibility Charting")
-        print(f"   🔍 Hover Interactions and Tooltips")
+        print(f"   [PROGRESS] Real-time Credibility Charting")
+        print(f"   [SEARCH] Hover Interactions and Tooltips")
         
     else:
-        print(f"❌ Failed to get session history: {response.status_code}")
+        print(f"[FAIL] Failed to get session history: {response.status_code}")
     
     print(f"\n🌟 Demo Complete!")
     print(f"   Frontend URL: http://localhost:3000")

@@ -9,8 +9,8 @@ def test_analyze_with_mock_transcript():
     # We'll create a quick test by temporarily modifying the query_gemini function
     # to return a test response without calling the actual Gemini API
     
-    print("🔍 Testing structured output validation system...")
-    print("📊 Creating mock Gemini response to test validation...")
+    print("[SEARCH] Testing structured output validation system...")
+    print("[DATA] Creating mock Gemini response to test validation...")
     print("=" * 60)
     
     # Test with mock data that has the list-to-string conversion issue
@@ -120,14 +120,14 @@ def test_analyze_with_mock_transcript():
     test_transcript = "This is a test transcript for validation"
     validated_response = validate_and_structure_gemini_response(mock_gemini_response, test_transcript)
     
-    print("✅ Validation completed! Checking results...")
+    print("[PASS] Validation completed! Checking results...")
     print("=" * 60)
     
     # Check if list-to-string conversion worked
     key_concerns = validated_response.get('gemini_summary', {}).get('key_concerns', '')
     strengths = validated_response.get('gemini_summary', {}).get('strengths', '')
     
-    print(f"🔧 List-to-String Conversion Test:")
+    print(f"[TOOL] List-to-String Conversion Test:")
     print(f"   Original key_concerns type: {type(mock_gemini_response['gemini_summary']['key_concerns'])}")
     print(f"   Validated key_concerns type: {type(key_concerns)}")
     print(f"   Validated key_concerns value: {key_concerns}")
@@ -149,68 +149,68 @@ def test_analyze_with_mock_transcript():
     print("📋 Required Fields Validation (Valid Mock):")
     all_present_valid = True
     for field in required_fields:
-        status = "✅" if field in validated_response and validated_response[field] is not None else "❌"
+        status = "[PASS]" if field in validated_response and validated_response[field] is not None else "[FAIL]"
         if not (field in validated_response and validated_response[field] is not None):
             all_present_valid = False
         print(f"   {status} {field}")
     
     print()
-    print(f"🎯 Credibility Score: {validated_response.get('credibility_score')} (type: {type(validated_response.get('credibility_score'))})")
-    print(f"📊 Confidence Level: {validated_response.get('confidence_level')}")
-    print(f"⚠️  Risk Level: {validated_response.get('risk_assessment', {}).get('overall_risk')}")
+    print(f"[TARGET] Credibility Score: {validated_response.get('credibility_score')} (type: {type(validated_response.get('credibility_score'))})")
+    print(f"[DATA] Confidence Level: {validated_response.get('confidence_level')}")
+    print(f"[WARN]  Risk Level: {validated_response.get('risk_assessment', {}).get('overall_risk')}")
 
     # --- Detailed checks for new valid sections ---
     print("\n" + "=" * 30 + " VALID MOCK NEW SECTIONS " + "=" * 30)
 
     # Manipulation Assessment
     ma_data = validated_response.get('manipulation_assessment', {})
-    print("\n🧪 Manipulation Assessment Validation:")
-    print(f"   Present: {'✅' if ma_data else '❌'}")
+    print("\n[TEST] Manipulation Assessment Validation:")
+    print(f"   Present: {'[PASS]' if ma_data else '[FAIL]'}")
     score = ma_data.get('manipulation_score')
-    print(f"   manipulation_score type: {type(score)}, Value: {score}, In Range: {'✅' if isinstance(score, int) and 0 <= score <= 100 else '❌'}")
+    print(f"   manipulation_score type: {type(score)}, Value: {score}, In Range: {'[PASS]' if isinstance(score, int) and 0 <= score <= 100 else '[FAIL]'}")
     tactics = ma_data.get('manipulation_tactics')
-    print(f"   manipulation_tactics type: {type(tactics)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in tactics) else 'MIXED/WRONG'} {'✅' if isinstance(tactics, list) else '❌'}")
+    print(f"   manipulation_tactics type: {type(tactics)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in tactics) else 'MIXED/WRONG'} {'[PASS]' if isinstance(tactics, list) else '[FAIL]'}")
     explanation = ma_data.get('manipulation_explanation')
-    print(f"   manipulation_explanation type: {type(explanation)} {'✅' if isinstance(explanation, str) else '❌'}")
+    print(f"   manipulation_explanation type: {type(explanation)} {'[PASS]' if isinstance(explanation, str) else '[FAIL]'}")
     phrases = ma_data.get('example_phrases')
-    print(f"   example_phrases type: {type(phrases)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in phrases) else 'MIXED/WRONG'} {'✅' if isinstance(phrases, list) else '❌'}")
+    print(f"   example_phrases type: {type(phrases)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in phrases) else 'MIXED/WRONG'} {'[PASS]' if isinstance(phrases, list) else '[FAIL]'}")
 
     # Argument Analysis
     aa_data = validated_response.get('argument_analysis', {})
-    print("\n🧪 Argument Analysis Validation:")
-    print(f"   Present: {'✅' if aa_data else '❌'}")
+    print("\n[TEST] Argument Analysis Validation:")
+    print(f"   Present: {'[PASS]' if aa_data else '[FAIL]'}")
     strengths_aa = aa_data.get('argument_strengths')
-    print(f"   argument_strengths type: {type(strengths_aa)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in strengths_aa) else 'MIXED/WRONG'} {'✅' if isinstance(strengths_aa, list) else '❌'}")
+    print(f"   argument_strengths type: {type(strengths_aa)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in strengths_aa) else 'MIXED/WRONG'} {'[PASS]' if isinstance(strengths_aa, list) else '[FAIL]'}")
     weaknesses_aa = aa_data.get('argument_weaknesses')
-    print(f"   argument_weaknesses type: {type(weaknesses_aa)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in weaknesses_aa) else 'MIXED/WRONG'} {'✅' if isinstance(weaknesses_aa, list) else '❌'}")
+    print(f"   argument_weaknesses type: {type(weaknesses_aa)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in weaknesses_aa) else 'MIXED/WRONG'} {'[PASS]' if isinstance(weaknesses_aa, list) else '[FAIL]'}")
     coherence_score = aa_data.get('overall_argument_coherence_score')
-    print(f"   overall_argument_coherence_score type: {type(coherence_score)}, Value: {coherence_score}, In Range: {'✅' if isinstance(coherence_score, int) and 0 <= coherence_score <= 100 else '❌'}")
+    print(f"   overall_argument_coherence_score type: {type(coherence_score)}, Value: {coherence_score}, In Range: {'[PASS]' if isinstance(coherence_score, int) and 0 <= coherence_score <= 100 else '[FAIL]'}")
 
     # Speaker Attitude
     sa_data = validated_response.get('speaker_attitude', {})
-    print("\n🧪 Speaker Attitude Validation:")
-    print(f"   Present: {'✅' if sa_data else '❌'}")
+    print("\n[TEST] Speaker Attitude Validation:")
+    print(f"   Present: {'[PASS]' if sa_data else '[FAIL]'}")
     respect_score = sa_data.get('respect_level_score')
-    print(f"   respect_level_score type: {type(respect_score)}, Value: {respect_score}, In Range: {'✅' if isinstance(respect_score, int) and 0 <= respect_score <= 100 else '❌'}")
+    print(f"   respect_level_score type: {type(respect_score)}, Value: {respect_score}, In Range: {'[PASS]' if isinstance(respect_score, int) and 0 <= respect_score <= 100 else '[FAIL]'}")
     sarcasm_detected = sa_data.get('sarcasm_detected')
-    print(f"   sarcasm_detected type: {type(sarcasm_detected)} {'✅' if isinstance(sarcasm_detected, bool) else '❌'}")
+    print(f"   sarcasm_detected type: {type(sarcasm_detected)} {'[PASS]' if isinstance(sarcasm_detected, bool) else '[FAIL]'}")
     sarcasm_confidence = sa_data.get('sarcasm_confidence_score')
-    print(f"   sarcasm_confidence_score type: {type(sarcasm_confidence)}, Value: {sarcasm_confidence}, In Range: {'✅' if isinstance(sarcasm_confidence, int) and 0 <= sarcasm_confidence <= 100 else '❌'}")
+    print(f"   sarcasm_confidence_score type: {type(sarcasm_confidence)}, Value: {sarcasm_confidence}, In Range: {'[PASS]' if isinstance(sarcasm_confidence, int) and 0 <= sarcasm_confidence <= 100 else '[FAIL]'}")
     tone_indicators = sa_data.get('tone_indicators_respect_sarcasm')
-    print(f"   tone_indicators_respect_sarcasm type: {type(tone_indicators)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in tone_indicators) else 'MIXED/WRONG'} {'✅' if isinstance(tone_indicators, list) else '❌'}")
+    print(f"   tone_indicators_respect_sarcasm type: {type(tone_indicators)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in tone_indicators) else 'MIXED/WRONG'} {'[PASS]' if isinstance(tone_indicators, list) else '[FAIL]'}")
 
     # Enhanced Understanding
     eu_data = validated_response.get('enhanced_understanding', {})
-    print("\n🧪 Enhanced Understanding Validation:")
-    print(f"   Present: {'✅' if eu_data else '❌'}")
+    print("\n[TEST] Enhanced Understanding Validation:")
+    print(f"   Present: {'[PASS]' if eu_data else '[FAIL]'}")
     inconsistencies = eu_data.get('key_inconsistencies')
-    print(f"   key_inconsistencies type: {type(inconsistencies)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in inconsistencies) else 'MIXED/WRONG'} {'✅' if isinstance(inconsistencies, list) else '❌'}")
+    print(f"   key_inconsistencies type: {type(inconsistencies)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in inconsistencies) else 'MIXED/WRONG'} {'[PASS]' if isinstance(inconsistencies, list) else '[FAIL]'}")
     evasiveness = eu_data.get('areas_of_evasiveness')
-    print(f"   areas_of_evasiveness type: {type(evasiveness)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in evasiveness) else 'MIXED/WRONG'} {'✅' if isinstance(evasiveness, list) else '❌'}")
+    print(f"   areas_of_evasiveness type: {type(evasiveness)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in evasiveness) else 'MIXED/WRONG'} {'[PASS]' if isinstance(evasiveness, list) else '[FAIL]'}")
     follow_up = eu_data.get('suggested_follow_up_questions')
-    print(f"   suggested_follow_up_questions type: {type(follow_up)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in follow_up) else 'MIXED/WRONG'} {'✅' if isinstance(follow_up, list) else '❌'}")
+    print(f"   suggested_follow_up_questions type: {type(follow_up)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in follow_up) else 'MIXED/WRONG'} {'[PASS]' if isinstance(follow_up, list) else '[FAIL]'}")
     unverified = eu_data.get('unverified_claims')
-    print(f"   unverified_claims type: {type(unverified)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in unverified) else 'MIXED/WRONG'} {'✅' if isinstance(unverified, list) else '❌'}")
+    print(f"   unverified_claims type: {type(unverified)}, Items type: {'<class \'str\'>' if all(isinstance(i, str) for i in unverified) else 'MIXED/WRONG'} {'[PASS]' if isinstance(unverified, list) else '[FAIL]'}")
 
     print("\n" + "=" * 28 + " INVALID MOCK NEW SECTIONS " + "=" * 28)
     validated_invalid_response = validate_and_structure_gemini_response(mock_gemini_response_invalid, test_transcript)
@@ -226,62 +226,62 @@ def test_analyze_with_mock_transcript():
 
     # Manipulation Assessment (Invalid)
     ma_invalid = validated_invalid_response.get('manipulation_assessment', {})
-    print("\n🧪 Invalid Manipulation Assessment - Default Application:")
+    print("\n[TEST] Invalid Manipulation Assessment - Default Application:")
     score_inv_ma = ma_invalid.get('manipulation_score')
-    print(f"   manipulation_score type: {type(score_inv_ma)}, Value: {score_inv_ma} (Defaulted from 'very high indeed') {'✅' if score_inv_ma == default_manip_score else '❌ Default Applied Incorrectly'}")
+    print(f"   manipulation_score type: {type(score_inv_ma)}, Value: {score_inv_ma} (Defaulted from 'very high indeed') {'[PASS]' if score_inv_ma == default_manip_score else '[FAIL] Default Applied Incorrectly'}")
     tactics_inv_ma = ma_invalid.get('manipulation_tactics')
-    print(f"   manipulation_tactics type: {type(tactics_inv_ma)}, Value: {tactics_inv_ma} (Defaulted from string) {'✅' if tactics_inv_ma == default_manip_tactics else '❌ Default Applied Incorrectly'}")
+    print(f"   manipulation_tactics type: {type(tactics_inv_ma)}, Value: {tactics_inv_ma} (Defaulted from string) {'[PASS]' if tactics_inv_ma == default_manip_tactics else '[FAIL] Default Applied Incorrectly'}")
     explanation_inv_ma = ma_invalid.get('manipulation_explanation')
-    print(f"   manipulation_explanation type: {type(explanation_inv_ma)}, Value: '{explanation_inv_ma}' (Defaulted from bool) {'✅' if explanation_inv_ma == 'N/A' else '❌ Default Applied Incorrectly'}")
+    print(f"   manipulation_explanation type: {type(explanation_inv_ma)}, Value: '{explanation_inv_ma}' (Defaulted from bool) {'[PASS]' if explanation_inv_ma == 'N/A' else '[FAIL] Default Applied Incorrectly'}")
     phrases_inv_ma = ma_invalid.get('example_phrases')
-    print(f"   example_phrases type: {type(phrases_inv_ma)}, Value: {phrases_inv_ma} (Defaulted from missing) {'✅' if phrases_inv_ma == default_list else '❌ Default Applied Incorrectly'}")
+    print(f"   example_phrases type: {type(phrases_inv_ma)}, Value: {phrases_inv_ma} (Defaulted from missing) {'[PASS]' if phrases_inv_ma == default_list else '[FAIL] Default Applied Incorrectly'}")
 
     # Argument Analysis (Invalid)
     aa_invalid = validated_invalid_response.get('argument_analysis', {})
-    print("\n🧪 Invalid Argument Analysis - Default Application:")
+    print("\n[TEST] Invalid Argument Analysis - Default Application:")
     strengths_inv_aa = aa_invalid.get('argument_strengths') # List with int
-    print(f"   argument_strengths type: {type(strengths_inv_aa)}, Value: {strengths_inv_aa} (Items Defaulted to str) {'✅' if all(isinstance(i,str) for i in strengths_inv_aa) and strengths_inv_aa[0]=='123' else '❌ Default/Conversion Applied Incorrectly'}")
+    print(f"   argument_strengths type: {type(strengths_inv_aa)}, Value: {strengths_inv_aa} (Items Defaulted to str) {'[PASS]' if all(isinstance(i,str) for i in strengths_inv_aa) and strengths_inv_aa[0]=='123' else '[FAIL] Default/Conversion Applied Incorrectly'}")
     weaknesses_inv_aa = aa_invalid.get('argument_weaknesses')
-    print(f"   argument_weaknesses type: {type(weaknesses_inv_aa)}, Value: {weaknesses_inv_aa} (Defaulted from missing) {'✅' if weaknesses_inv_aa == default_list else '❌ Default Applied Incorrectly'}")
+    print(f"   argument_weaknesses type: {type(weaknesses_inv_aa)}, Value: {weaknesses_inv_aa} (Defaulted from missing) {'[PASS]' if weaknesses_inv_aa == default_list else '[FAIL] Default Applied Incorrectly'}")
     coh_score_inv_aa = aa_invalid.get('overall_argument_coherence_score')
-    print(f"   overall_argument_coherence_score type: {type(coh_score_inv_aa)}, Value: {coh_score_inv_aa} (Defaulted from 150) {'✅' if coh_score_inv_aa == 0 else '❌ Default Applied Incorrectly (expected 0 for out of range)'}") # Assuming 0-100 range sets to 0 or 100 if out of bounds, or default if type wrong. The default is 0.
+    print(f"   overall_argument_coherence_score type: {type(coh_score_inv_aa)}, Value: {coh_score_inv_aa} (Defaulted from 150) {'[PASS]' if coh_score_inv_aa == 0 else '[FAIL] Default Applied Incorrectly (expected 0 for out of range)'}") # Assuming 0-100 range sets to 0 or 100 if out of bounds, or default if type wrong. The default is 0.
 
     # Speaker Attitude (Invalid)
     sa_invalid = validated_invalid_response.get('speaker_attitude', {})
-    print("\n🧪 Invalid Speaker Attitude - Default Application:")
+    print("\n[TEST] Invalid Speaker Attitude - Default Application:")
     respect_inv_sa = sa_invalid.get('respect_level_score') # Missing, should be 50
-    print(f"   respect_level_score type: {type(respect_inv_sa)}, Value: {respect_inv_sa} (Defaulted from missing or out of range -20) {'✅' if respect_inv_sa == default_respect_score else '❌ Default Applied Incorrectly'}")
+    print(f"   respect_level_score type: {type(respect_inv_sa)}, Value: {respect_inv_sa} (Defaulted from missing or out of range -20) {'[PASS]' if respect_inv_sa == default_respect_score else '[FAIL] Default Applied Incorrectly'}")
     sarc_detected_inv_sa = sa_invalid.get('sarcasm_detected')
-    print(f"   sarcasm_detected type: {type(sarc_detected_inv_sa)}, Value: {sarc_detected_inv_sa} (Defaulted from 'maybe not') {'✅' if sarc_detected_inv_sa == default_sarc_detected else '❌ Default Applied Incorrectly'}")
+    print(f"   sarcasm_detected type: {type(sarc_detected_inv_sa)}, Value: {sarc_detected_inv_sa} (Defaulted from 'maybe not') {'[PASS]' if sarc_detected_inv_sa == default_sarc_detected else '[FAIL] Default Applied Incorrectly'}")
     sarc_conf_inv_sa = sa_invalid.get('sarcasm_confidence_score')
-    print(f"   sarcasm_confidence_score type: {type(sarc_conf_inv_sa)}, Value: {sarc_conf_inv_sa} (Defaulted from missing) {'✅' if sarc_conf_inv_sa == default_sarc_conf_score else '❌ Default Applied Incorrectly'}")
+    print(f"   sarcasm_confidence_score type: {type(sarc_conf_inv_sa)}, Value: {sarc_conf_inv_sa} (Defaulted from missing) {'[PASS]' if sarc_conf_inv_sa == default_sarc_conf_score else '[FAIL] Default Applied Incorrectly'}")
     tone_ind_inv_sa = sa_invalid.get('tone_indicators_respect_sarcasm')
-    print(f"   tone_indicators_respect_sarcasm type: {type(tone_ind_inv_sa)}, Value: {tone_ind_inv_sa} (Defaulted from dict) {'✅' if tone_ind_inv_sa == default_list else '❌ Default Applied Incorrectly'}")
+    print(f"   tone_indicators_respect_sarcasm type: {type(tone_ind_inv_sa)}, Value: {tone_ind_inv_sa} (Defaulted from dict) {'[PASS]' if tone_ind_inv_sa == default_list else '[FAIL] Default Applied Incorrectly'}")
 
     # Enhanced Understanding (Invalid)
     eu_invalid = validated_invalid_response.get('enhanced_understanding', {})
-    print("\n🧪 Invalid Enhanced Understanding - Default Application:")
+    print("\n[TEST] Invalid Enhanced Understanding - Default Application:")
     incons_inv_eu = eu_invalid.get('key_inconsistencies')
-    print(f"   key_inconsistencies type: {type(incons_inv_eu)}, Value: {incons_inv_eu} (Defaulted from bool) {'✅' if incons_inv_eu == default_list else '❌ Default Applied Incorrectly'}")
+    print(f"   key_inconsistencies type: {type(incons_inv_eu)}, Value: {incons_inv_eu} (Defaulted from bool) {'[PASS]' if incons_inv_eu == default_list else '[FAIL] Default Applied Incorrectly'}")
     evas_inv_eu = eu_invalid.get('areas_of_evasiveness')
-    print(f"   areas_of_evasiveness type: {type(evas_inv_eu)}, Value: {evas_inv_eu} (Defaulted from missing) {'✅' if evas_inv_eu == default_list else '❌ Default Applied Incorrectly'}")
+    print(f"   areas_of_evasiveness type: {type(evas_inv_eu)}, Value: {evas_inv_eu} (Defaulted from missing) {'[PASS]' if evas_inv_eu == default_list else '[FAIL] Default Applied Incorrectly'}")
     follow_up_inv_eu = eu_invalid.get('suggested_follow_up_questions') # list of int
-    print(f"   suggested_follow_up_questions type: {type(follow_up_inv_eu)}, Value: {follow_up_inv_eu} (Items Defaulted to str) {'✅' if all(isinstance(i,str) for i in follow_up_inv_eu) and follow_up_inv_eu[0]=='1' else '❌ Default/Conversion Applied Incorrectly'}")
+    print(f"   suggested_follow_up_questions type: {type(follow_up_inv_eu)}, Value: {follow_up_inv_eu} (Items Defaulted to str) {'[PASS]' if all(isinstance(i,str) for i in follow_up_inv_eu) and follow_up_inv_eu[0]=='1' else '[FAIL] Default/Conversion Applied Incorrectly'}")
     unverified_inv_eu = eu_invalid.get('unverified_claims')
-    print(f"   unverified_claims type: {type(unverified_inv_eu)}, Value: {unverified_inv_eu} (Defaulted from missing) {'✅' if unverified_inv_eu == default_list else '❌ Default Applied Incorrectly'}")
+    print(f"   unverified_claims type: {type(unverified_inv_eu)}, Value: {unverified_inv_eu} (Defaulted from missing) {'[PASS]' if unverified_inv_eu == default_list else '[FAIL] Default Applied Incorrectly'}")
 
     # Final Success/Failure
     # Basic check, can be made more robust by checking each assertion
-    num_checks_passed = sum(1 for line in open('test_validation.py').readlines() if '✅' in line) # Approximation
-    num_checks_failed = sum(1 for line in open('test_validation.py').readlines() if '❌' in line) # Approximation
+    num_checks_passed = sum(1 for line in open('test_validation.py').readlines() if '[PASS]' in line) # Approximation
+    num_checks_failed = sum(1 for line in open('test_validation.py').readlines() if '[FAIL]' in line) # Approximation
     
     if all_present_valid and isinstance(key_concerns, str) and isinstance(strengths, str) and num_checks_failed == 0 : # num_checks_failed needs to be calculated based on actual test results
-        print("\n🎉 SUCCESS: Structured output validation system working correctly for existing and new fields!")
-        print("✅ All required fields present in valid mock.")
-        print("✅ List-to-string conversion working for gemini_summary.")
-        print("✅ Data types and defaults correctly applied for new fields in both valid and invalid mocks.")
+        print("\n[SUCCESS] SUCCESS: Structured output validation system working correctly for existing and new fields!")
+        print("[PASS] All required fields present in valid mock.")
+        print("[PASS] List-to-string conversion working for gemini_summary.")
+        print("[PASS] Data types and defaults correctly applied for new fields in both valid and invalid mocks.")
     else:
-        print(f"\n❌ ISSUES DETECTED in validation system. Review checks above. Failed checks approx: {num_checks_failed}")
+        print(f"\n[FAIL] ISSUES DETECTED in validation system. Review checks above. Failed checks approx: {num_checks_failed}")
     
     print("\n📖 Complete Validated Response (from valid mock):")
     print(json.dumps(validated_response, indent=2))

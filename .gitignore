@@ -5,7 +5,11 @@ __pycache__/
 
 # C extensions
 *.so
-
+frontend/node_modules/
+backend/venv/
+backend/*.pyc
+backend/*.egg-info/
+backend/config.py
 # Distribution / packaging
 .Python
 build/

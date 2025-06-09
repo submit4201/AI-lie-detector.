@@ -25,7 +25,7 @@ def test_emotion_analysis():
             break
     
     if not audio_file_path:
-        print("❌ No test audio file found. Please ensure you have a test audio file.")
+        print("[FAIL] No test audio file found. Please ensure you have a test audio file.")
         return
     
     print(f"🎵 Testing with audio file: {audio_file_path}")
@@ -48,7 +48,7 @@ def test_emotion_analysis():
             if response.status_code == 200:
                 result = response.json()
                 
-                print("\n🔍 DEBUGGING EMOTION ANALYSIS DATA:")
+                print("\n[SEARCH] DEBUGGING EMOTION ANALYSIS DATA:")
                 print("=" * 50)
                 
                 # Check emotion_analysis structure
@@ -58,7 +58,7 @@ def test_emotion_analysis():
                 print(f"Emotion Analysis Content: {emotion_analysis}")
                 
                 if emotion_analysis:
-                    print("\n📊 Individual Emotions:")
+                    print("\n[DATA] Individual Emotions:")
                     for i, emotion in enumerate(emotion_analysis):
                         print(f"  {i}: {type(emotion)} = {emotion}")
                         if isinstance(emotion, dict):
@@ -68,7 +68,7 @@ def test_emotion_analysis():
                 
                 # Check if there are nested arrays
                 if emotion_analysis and isinstance(emotion_analysis[0], list):
-                    print("\n⚠️  NESTED ARRAY DETECTED!")
+                    print("\n[WARN]  NESTED ARRAY DETECTED!")
                     nested_emotions = emotion_analysis[0]
                     print(f"Nested emotions: {nested_emotions}")
                     for i, emotion in enumerate(nested_emotions):
@@ -86,13 +86,13 @@ def test_emotion_analysis():
                 print(f"\n💾 Full response saved to debug_response.json")
                 
             else:
-                print(f"❌ Request failed with status {response.status_code}")
+                print(f"[FAIL] Request failed with status {response.status_code}")
                 print(f"Error response: {response.text}")
                 
     except requests.exceptions.RequestException as e:
-        print(f"❌ Request error: {e}")
+        print(f"[FAIL] Request error: {e}")
     except Exception as e:
-        print(f"❌ Unexpected error: {e}")
+        print(f"[FAIL] Unexpected error: {e}")
 
 def test_emotion_classifier_directly():
     """Test the emotion classifier directly to see raw output"""
@@ -127,10 +127,10 @@ def test_emotion_classifier_directly():
         print(f"Processed emotion_scores: {emotion_scores}")
         
     except Exception as e:
-        print(f"❌ Direct classifier test failed: {e}")
+        print(f"[FAIL] Direct classifier test failed: {e}")
 
 if __name__ == "__main__":
-    print("🚀 EMOTION ANALYSIS DEBUG SCRIPT")
+    print("[LAUNCH] EMOTION ANALYSIS DEBUG SCRIPT")
     print("=" * 40)
     
     # Test the API
@@ -139,4 +139,4 @@ if __name__ == "__main__":
     # Test the classifier directly
     test_emotion_classifier_directly()
     
-    print("\n✅ Debug script completed!")
+    print("\n[PASS] Debug script completed!")

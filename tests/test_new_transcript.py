@@ -62,9 +62,9 @@ def test_new_transcript():
     
     # Display insights in a formatted way
     for category, analysis in insights.items():
-        print(f"\n🔍 {category.upper().replace('_', ' ')}")
+        print(f"\n[SEARCH] {category.upper().replace('_', ' ')}")
         print("-" * 60)
-        print(f"📊 Analysis: {analysis}")
+        print(f"[DATA] Analysis: {analysis}")
         print()
     
     print("=" * 80)

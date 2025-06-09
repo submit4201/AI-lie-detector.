@@ -21,7 +21,7 @@ def test_linguistic_service_directly():
     # Test with a simulated duration of 15 seconds
     duration = 15.0
     
-    print("🧠 Testing Linguistic Analysis Service")
+    print("[BRAIN] Testing Linguistic Analysis Service")
     print("=" * 50)
     print(f"Sample text: {test_transcript.strip()}")
     print(f"Duration: {duration} seconds")
@@ -31,7 +31,7 @@ def test_linguistic_service_directly():
     result = analyze_linguistic_patterns(test_transcript, duration)
     
     # Display results
-    print("\n📊 Quantitative Metrics:")
+    print("\n[DATA] Quantitative Metrics:")
     print(f"  Word Count: {result['word_count']}")
     print(f"  Hesitation Count: {result['hesitation_count']}")
     print(f"  Qualifier Count: {result['qualifier_count']}")
@@ -45,14 +45,14 @@ def test_linguistic_service_directly():
     print(f"  Speech Rate (WPM): {result['speech_rate_wpm']}")
     print(f"  Confidence Ratio: {result['confidence_ratio']}")
     
-    print("\n📝 Descriptive Analysis:")
+    print("\n[NOTE] Descriptive Analysis:")
     print(f"  Speech Patterns: {result['speech_patterns']}")
     print(f"  Word Choice: {result['word_choice']}")
     print(f"  Emotional Consistency: {result['emotional_consistency']}")
     print(f"  Detail Level: {result['detail_level']}")
     
     # Verify expected patterns
-    print("\n✅ Verification:")
+    print("\n[PASS] Verification:")
     print(f"  Expected hesitations (um, uh, like, you know): {result['hesitation_count'] >= 4}")
     print(f"  Expected qualifiers (maybe, think, perhaps, kind of): {result['qualifier_count'] >= 3}")
     print(f"  Expected certainty markers (definitely, absolutely): {result['certainty_count'] >= 2}")

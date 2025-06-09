@@ -78,7 +78,7 @@ def test_formality_scoring():
         formal_ratio = len(formal_words) / max(word_count, 1)
         informal_ratio = len(informal_words) / max(word_count, 1)
         
-        print(f"📊 FORMALITY ANALYSIS:")
+        print(f"[DATA] FORMALITY ANALYSIS:")
         print(f"   Final Score: {formality_score}/100")
         print(f"   Word Count: {word_count}")
         print(f"   Formal Words Found: {len(formal_words)} ({formal_words[:5]}{'...' if len(formal_words) > 5 else ''})")
@@ -165,4 +165,4 @@ if __name__ == "__main__":
     # Then test with examples
     test_formality_scoring()
     
-    print("✅ Formality analysis testing complete!")
+    print("[PASS] Formality analysis testing complete!")

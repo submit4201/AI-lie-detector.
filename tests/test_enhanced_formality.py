@@ -90,7 +90,7 @@ def test_enhanced_formality():
         
         total_formal = formal_transitions + formal_courtesy + formal_legal + formal_academic
         
-        print(f"📊 DETAILED ANALYSIS:")
+        print(f"[DATA] DETAILED ANALYSIS:")
         print(f"   Final Score: {formality_score}/100")
         print(f"   Word Count: {word_count}")
         print(f"   ")
@@ -143,4 +143,4 @@ def test_enhanced_formality():
 
 if __name__ == "__main__":
     test_enhanced_formality()
-    print("✅ Enhanced formality analysis complete!")
+    print("[PASS] Enhanced formality analysis complete!")

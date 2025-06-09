@@ -16,7 +16,7 @@ def test_session_insights_with_transcript():
     # Sample transcript provided by user
     transcript_text = """You know, go with the. Using the chair, that's fine. I'm cool with that. I'm not gonna be long, just right by my house. So it's there in here, so. OK I'm. OK i'm ready now, so. You guys, we can finally woke up and saw that I was all loaded up and and and not gone yet. So I guess you got that opportunity right. What are you?"""
     
-    print("🧪 Testing Enhanced Session Insights with Real Transcript")
+    print("[TEST] Testing Enhanced Session Insights with Real Transcript")
     print("=" * 60)
     
     try:
@@ -25,7 +25,7 @@ def test_session_insights_with_transcript():
         session_response = requests.post(f"{base_url}/session/new")
         session_data = session_response.json()
         session_id = session_data["session_id"]
-        print(f"   ✅ Session created: {session_id}")
+        print(f"   [PASS] Session created: {session_id}")
         
         # Simulate multiple analyses in the same session
         analysis_results = []
@@ -71,27 +71,27 @@ def test_session_insights_with_transcript():
             }
             
             analysis_results.append(simulated_analysis)
-            print(f"     ✅ Analysis {i} complete - Credibility: {simulated_analysis['credibility_score']}%")
+            print(f"     [PASS] Analysis {i} complete - Credibility: {simulated_analysis['credibility_score']}%")
             
             # Small delay to simulate processing time
             time.sleep(0.5)
         
         print(f"\n3. Session Summary:")
-        print(f"   📊 Total Analyses: {len(analysis_results)}")
-        print(f"   📈 Credibility Trend: {analysis_results[0]['credibility_score']}% → {analysis_results[-1]['credibility_score']}%")
-        print(f"   ⚠️ Risk Progression: {analysis_results[0]['risk_assessment']['overall_risk']} → {analysis_results[-1]['risk_assessment']['overall_risk']}")
+        print(f"   [DATA] Total Analyses: {len(analysis_results)}")
+        print(f"   [PROGRESS] Credibility Trend: {analysis_results[0]['credibility_score']}% → {analysis_results[-1]['credibility_score']}%")
+        print(f"   [WARN] Risk Progression: {analysis_results[0]['risk_assessment']['overall_risk']} → {analysis_results[-1]['risk_assessment']['overall_risk']}")
         
         # Simulate what session insights would be generated
         print(f"\n4. Expected Session Insights:")
-        print("   🎯 Consistency Analysis:")
+        print("   [TARGET] Consistency Analysis:")
         print("      → Credibility declining from 80% to 35% shows increasing inconsistency")
         print("      → Speech fragmentation patterns indicate growing stress")
         
-        print("   📊 Behavioral Evolution:")
+        print("   [DATA] Behavioral Evolution:")
         print("      → Speech rate declining from 150 to 120 WPM indicates hesitation")
         print("      → Increasing hesitation count (2→8) suggests discomfort")
         
-        print("   ⚠️ Risk Trajectory:")
+        print("   [WARN] Risk Trajectory:")
         print("      → Risk escalating from Low to High indicates deception likelihood")
         print("      → Pattern of incomplete thoughts suggests evasiveness")
         
@@ -99,13 +99,13 @@ def test_session_insights_with_transcript():
         print("      → Conversation flow shows fragmented responses")
         print("      → Emotional state shifting from confident to defensive")
         
-        print(f"\n✅ Enhanced Session Insights Test Complete!")
-        print(f"🎉 The new system would provide intelligent analysis instead of placeholders!")
+        print(f"\n[PASS] Enhanced Session Insights Test Complete!")
+        print(f"[SUCCESS] The new system would provide intelligent analysis instead of placeholders!")
         
         return analysis_results
         
     except Exception as e:
-        print(f"❌ Error during testing: {str(e)}")
+        print(f"[FAIL] Error during testing: {str(e)}")
         return None
 
 if __name__ == "__main__":

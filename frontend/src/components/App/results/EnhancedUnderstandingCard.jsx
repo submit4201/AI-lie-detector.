@@ -1,12 +1,38 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
-const ListItem = ({ item, icon = "🔹" }) => (
-  <li className="text-gray-300 text-sm bg-black/20 p-2 rounded-md border border-white/10 flex items-start">
-    <span className="mr-2 text-blue-400">{icon}</span>
-    <span>{item}</span>
-  </li>
-);
+const ListSection = ({ title, items, emptyMessage, color = "blue" }) => {
+  const colorClasses = {
+    blue: "bg-blue-500/20 border-blue-400/30 text-blue-300",
+    red: "bg-red-500/20 border-red-400/30 text-red-300",
+    yellow: "bg-yellow-500/20 border-yellow-400/30 text-yellow-300",
+    green: "bg-green-500/20 border-green-400/30 text-green-300",
+    purple: "bg-purple-500/20 border-purple-400/30 text-purple-300"
+  };
+
+  return (
+    <div>
+      <h4 className={`text-md font-semibold mb-2 ${colorClasses[color].split(' ')[2]}`}>
+        {title}
+      </h4>
+      {items && items.length > 0 ? (
+        <div className="space-y-2">
+          {items.map((item, index) => (
+            <div
+              key={index}
+              className={`${colorClasses[color].split(' ').slice(0, 2).join(' ')} backdrop-blur-sm border rounded-lg p-3`}
+            >
+              <p className="text-gray-200 text-sm">{item}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-gray-400 text-sm">{emptyMessage}</p>
+      )}
+    </div>
+  );
+};
 
 const EnhancedUnderstandingCard = ({ understanding }) => {
   if (!understanding) {
@@ -30,53 +56,54 @@ const EnhancedUnderstandingCard = ({ understanding }) => {
 
   return (
     <Card className="bg-transparent shadow-none border-none rounded-none">
-      <CardContent className="p-0">
-        <div className="bg-black/30 backdrop-blur-sm border border-white/20 rounded-lg p-4 space-y-4">
+      <CardContent className="p-0 space-y-6">
+        
+        {/* Key Inconsistencies */}
+        <ListSection
+          title="🔍 Key Inconsistencies"
+          items={key_inconsistencies}
+          emptyMessage="No significant inconsistencies detected."
+          color="red"
+        />
 
-          <div>
-            <h4 className="text-md font-semibold text-red-300 mb-2">Key Inconsistencies</h4>
-            {key_inconsistencies.length > 0 ? (
-              <ul className="space-y-1">
-                {key_inconsistencies.map((item, index) => <ListItem key={index} item={item} icon="⚠️"/>)}
-              </ul>
-            ) : (
-              <p className="text-gray-400 text-sm">None detected.</p>
-            )}
-          </div>
+        {/* Areas of Evasiveness */}
+        <ListSection
+          title="🚪 Areas of Evasiveness"
+          items={areas_of_evasiveness}
+          emptyMessage="No evasive patterns detected."
+          color="yellow"
+        />
 
-          <div>
-            <h4 className="text-md font-semibold text-yellow-300 mb-2">Areas of Evasiveness</h4>
-            {areas_of_evasiveness.length > 0 ? (
-              <ul className="space-y-1">
-                {areas_of_evasiveness.map((item, index) => <ListItem key={index} item={item} icon="🤫"/>)}
-              </ul>
-            ) : (
-              <p className="text-gray-400 text-sm">None detected.</p>
-            )}
-          </div>
+        {/* Suggested Follow-up Questions */}
+        <ListSection
+          title="❓ Suggested Follow-up Questions"
+          items={suggested_follow_up_questions}
+          emptyMessage="No specific follow-up questions suggested."
+          color="blue"
+        />
 
-          <div>
-            <h4 className="text-md font-semibold text-green-300 mb-2">Suggested Follow-up Questions</h4>
-            {suggested_follow_up_questions.length > 0 ? (
-              <ul className="space-y-1">
-                {suggested_follow_up_questions.map((item, index) => <ListItem key={index} item={item} icon="❓"/>)}
-              </ul>
-            ) : (
-              <p className="text-gray-400 text-sm">None suggested.</p>
-            )}
-          </div>
+        {/* Unverified Claims */}
+        <ListSection
+          title="⚠️ Unverified Claims"
+          items={unverified_claims}
+          emptyMessage="No unverified claims identified."
+          color="purple"
+        />
 
-          <div>
-            <h4 className="text-md font-semibold text-purple-300 mb-2">Unverified Claims</h4>
-            {unverified_claims.length > 0 ? (
-              <ul className="space-y-1">
-                {unverified_claims.map((item, index) => <ListItem key={index} item={item} icon="🧐"/>)}
-              </ul>
-            ) : (
-              <p className="text-gray-400 text-sm">None identified.</p>
-            )}
-          </div>
-
+        {/* Summary Badge */}
+        <div className="flex flex-wrap gap-2 pt-4 border-t border-white/10">
+          <Badge variant="outline" className="bg-black/20 text-gray-300 border-white/20">
+            {key_inconsistencies.length} Inconsistencies
+          </Badge>
+          <Badge variant="outline" className="bg-black/20 text-gray-300 border-white/20">
+            {areas_of_evasiveness.length} Evasive Areas
+          </Badge>
+          <Badge variant="outline" className="bg-black/20 text-gray-300 border-white/20">
+            {suggested_follow_up_questions.length} Follow-ups
+          </Badge>
+          <Badge variant="outline" className="bg-black/20 text-gray-300 border-white/20">
+            {unverified_claims.length} Unverified Claims
+          </Badge>
         </div>
       </CardContent>
     </Card>

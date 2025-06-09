@@ -20,10 +20,27 @@ const ControlPanel = ({
   startRecording,
   stopRecording,
   exportResults,
-  result // Added result to conditionally render Export button
+  result,
+  updateAnalysisResult,
+  useStreaming,
+  setUseStreaming,
+  isStreamingConnected,
+  streamingProgress,
 }) => {
+  // Test function to load structured output
+  const testStructuredOutput = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/test-structured-output'); //DO NOT CHANGE THIS
+      if (response.ok) {
+        const data = await response.json();
+        updateAnalysisResult(data);
+      }
+    } catch (error) {
+      console.error('Test failed:', error);
+    }
+  };
   return (
-    <Card className="mb-8 bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
+    <Card className="mb-8 section-container glow-purple">
       <CardContent className="p-8">
         <div className="flex flex-col gap-6">
           {/* Session Management */}
@@ -32,9 +49,9 @@ const ControlPanel = ({
               <h3 className="text-white font-semibold text-lg">🗂️ Conversation Session</h3>
               <Button
                 onClick={() => setShowSessionPanel(!showSessionPanel)}
-                variant="outline"
-                size="sm"
-                className="text-white border-white/30 hover:bg-white/10"
+                // variant="outline" // Removed
+                // size="sm" // Removed, using custom classes for padding/height
+                className="text-sm font-semibold text-gray-200 hover:text-white bg-slate-700/40 hover:bg-slate-700/60 border border-white/20 rounded-md shadow-sm transition-all duration-300 flex items-center px-3 py-2" // Added px-3 py-2 for size="sm" feel
               >
                 <Settings className="w-4 h-4 mr-2" />
                 {showSessionPanel ? 'Hide' : 'Show'} Session
@@ -62,17 +79,17 @@ const ControlPanel = ({
               <div className="flex gap-2 ml-auto">
                 <Button
                   onClick={createNewSession}
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  // size="sm" // Removed
+                  className="text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-md shadow-md hover:shadow-lg transition-all duration-300 px-3 py-2" // Added px-3 py-2
                 >
                   New Session
                 </Button>
                 {sessionId && (
                   <Button
                     onClick={clearCurrentSession}
-                    size="sm"
-                    variant="outline"
-                    className="text-red-400 border-red-400/30 hover:bg-red-500/10"
+                    // size="sm" // Removed
+                    // variant="outline" // Removed
+                    className="text-sm font-semibold text-red-300 hover:text-red-200 border border-red-500/50 hover:bg-red-500/20 rounded-md shadow-sm hover:shadow-md transition-all duration-300 px-3 py-2" // Added px-3 py-2
                   >
                     Clear Session
                   </Button>
@@ -119,6 +136,45 @@ const ControlPanel = ({
                   ))}
                 </div>
               </div>
+            )}          </div>
+
+          {/* Streaming Configuration */}
+          <div className="bg-black/30 backdrop-blur-sm border border-white/20 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-white font-semibold text-lg">⚡ Analysis Mode</h3>
+              {isStreamingConnected && (
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-green-200 text-sm">Streaming Connected</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useStreaming}
+                  onChange={(e) => setUseStreaming(e.target.checked)}
+                  className="w-4 h-4 rounded border-white/30 bg-white/10 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
+                />
+                <span className="text-white">Enable Real-time Streaming Analysis</span>
+              </label>
+              
+              {useStreaming && (
+                <div className="ml-auto text-sm text-white/70">
+                  Get results as they're processed ⚡
+                </div>
+              )}
+            </div>
+
+            {useStreaming && streamingProgress && (
+              <div className="mt-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                  <span className="text-white text-sm">{streamingProgress}</span>
+                </div>
+              </div>
             )}
           </div>
 
@@ -158,9 +214,7 @@ const ControlPanel = ({
             >
               {recording ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
               {recording ? "Stop Recording" : "Record Audio"}
-            </Button>
-
-            {result && (
+            </Button>            {result && (
               <Button
                 onClick={exportResults}
                 className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
@@ -169,14 +223,24 @@ const ControlPanel = ({
                 Export Results
               </Button>
             )}
-          </div>
 
-          {/* Progress Indicator */}
-          {loading && analysisProgress && (
+            <Button
+              onClick={testStructuredOutput}
+              className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
+            >
+              🧪 Test Tabs UI
+            </Button>
+          </div>          {/* Progress Indicator */}
+          {loading && (analysisProgress || streamingProgress) && (
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
               <div className="flex items-center gap-3">
                 <Loader2 className="w-5 h-5 animate-spin text-blue-400" />
-                <span className="text-white font-medium">{analysisProgress}</span>
+                <span className="text-white font-medium">
+                  {useStreaming ? streamingProgress : analysisProgress}
+                </span>
+                {useStreaming && (
+                  <span className="text-blue-300 text-sm ml-auto">Streaming Mode</span>
+                )}
               </div>
             </div>
           )}
