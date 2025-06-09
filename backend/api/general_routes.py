@@ -46,25 +46,29 @@ async def health_check():
             from services.gemini_service import query_gemini, validate_and_structure_gemini_response
             services_status["gemini_service"] = "available"
         except Exception as e:
-            services_status["gemini_service"] = f"error: {str(e)}"
+            services_status["gemini_service"] = "unavailable"
+            print(f"Error in gemini_service: {e}")  # Log the exception internally
         
         try:
             from services.audio_service import assess_audio_quality, streaming_audio_analysis_pipeline
             services_status["audio_service"] = "available"
         except Exception as e:
-            services_status["audio_service"] = f"error: {str(e)}"
+            services_status["audio_service"] = "unavailable"
+            print(f"Error in audio_service: {e}")  # Log the exception internally
         
         try:
             from services.session_service import conversation_history_service
             services_status["session_service"] = "available"
         except Exception as e:
-            services_status["session_service"] = f"error: {str(e)}"
+            services_status["session_service"] = "unavailable"
+            print(f"Error in session_service: {e}")  # Log the exception internally
         
         try:
             from services.streaming_service import analysis_streamer, stream_analysis_pipeline
             services_status["streaming_service"] = "available"
         except Exception as e:
-            services_status["streaming_service"] = f"error: {str(e)}"
+            services_status["streaming_service"] = "unavailable"
+            print(f"Error in streaming_service: {e}")  # Log the exception internally
         
         health_data["services"] = services_status
         
