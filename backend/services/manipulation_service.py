@@ -1,65 +1,69 @@
 # backend/services/manipulation_service.py
 import logging
 from typing import Dict, Any, Optional
+import json # Added for DSPy module
 from backend.models import ManipulationAssessment
-from backend.services.gemini_service import GeminiService # Assuming GeminiService will be here or accessible
-import json
+# from backend.services.gemini_service import GeminiService # No longer needed for direct calls
+from backend.dspy_modules import DSPyManipulationAnalyzer # Import the new DSPy module
+from backend.services.gemini_service import GeminiService # Import to ensure it's initialized
 
 logger = logging.getLogger(__name__)
 
 class ManipulationService:
     def __init__(self, gemini_service: Optional[GeminiService] = None):
-        self.gemini_service = gemini_service if gemini_service else GeminiService()
+        # Ensure GeminiService is initialized, which should configure DSPy LM.
+        # If gemini_service is passed, assume it's already initialized.
+        # If not passed, instantiate it to trigger __init__ (and thus DSPy setup).
+        self.gemini_service_instance = gemini_service if gemini_service else GeminiService()
+        self.dspy_analyzer = DSPyManipulationAnalyzer()
+
+        # Verify DSPy LM configuration after GeminiService initialization
+        import dspy
+        if not hasattr(dspy.settings, 'lm') or not dspy.settings.lm:
+            logger.warning("DSPy LM may not have been configured by GeminiService init as expected. Analysis might rely on fallbacks or fail if no API key.")
+        else:
+            logger.info("ManipulationService initialized; DSPy LM should be configured by GeminiService.")
+
 
     async def analyze(self, transcript: str, session_context: Optional[Dict[str, Any]] = None) -> ManipulationAssessment:
         if not transcript:
             return ManipulationAssessment()
 
-        prompt = f"""Analyze the following transcript for signs of manipulation.
-Transcript:
-"{transcript}"
-
-Session Context (if available, use for nuanced understanding):
-{json.dumps(session_context) if session_context else "No additional session context provided."}
-
-Consider the following aspects and provide your analysis as a JSON object matching the ManipulationAssessment model:
-1.  is_manipulative (bool): Overall assessment of whether manipulation is present in the provided transcript.
-2.  manipulation_score (float, 0.0 to 1.0): A score indicating the likelihood and intensity of manipulation. 0.0 means no manipulation, 1.0 means strong and clear manipulation.
-3.  manipulation_techniques (List[str]): Identify specific manipulation techniques observed (e.g., "Gaslighting", "Guilt-tripping", "Love bombing", "Appeal to pity", "Intimidation", "Minimization", "Threatening", "Flattery", "Playing the victim").
-4.  manipulation_confidence (float, 0.0 to 1.0): Your confidence in this overall manipulation assessment (is_manipulative, score, techniques).
-5.  manipulation_explanation (str): A concise explanation for your overall assessment (is_manipulative). Cite specific examples or phrases from the transcript that support your findings for the identified techniques.
-6.  manipulation_score_analysis (str): Provide a detailed analysis and reasoning behind the specific 'manipulation_score' you assigned. Explain how the presence, absence, or combination of techniques and their perceived intensity in the transcript led to this score. For example, if the score is 0.7, explain what factors make it high but not 1.0.
-
-JSON structure to be returned:
-{{
-  "is_manipulative": bool,
-  "manipulation_score": float,
-  "manipulation_techniques": ["technique1", "technique2"],
-  "manipulation_confidence": float,
-  "manipulation_explanation": "...",
-  "manipulation_score_analysis": "..."
-}}
-If a field cannot be determined or is not applicable, use a sensible default (e.g., false for boolean, 0.0 for float, empty list for lists, or "Analysis not available." for strings).
-Focus your analysis solely on the provided transcript and session context.
-"""
+        # The prompt is now managed by DSPySignature in dspy_modules.py
 
         try:
-            raw_analysis = await self.gemini_service.query_gemini_for_raw_json(prompt)
-            if raw_analysis:
-                data = json.loads(raw_analysis)
-                # Ensure all fields from the model are present, with defaults if missing
-                return ManipulationAssessment(
-                    is_manipulative=data.get("is_manipulative", False),
-                    manipulation_score=data.get("manipulation_score", 0.0),
-                    manipulation_techniques=data.get("manipulation_techniques", []),
-                    manipulation_confidence=data.get("manipulation_confidence", 0.0),
-                    manipulation_explanation=data.get("manipulation_explanation", "Analysis not available."),
-                    manipulation_score_analysis=data.get("manipulation_score_analysis", "Analysis not available.")
-                )
-            else:
-                return self._fallback_text_analysis(transcript)
+            # Use the DSPy module for analysis
+            # The DSPy module's forward method is synchronous.
+            # If DSPy's LM calls are inherently async or need to be run in an executor:
+            # This might require an async wrapper around the dspy_analyzer.forward call
+            # or making dspy_analyzer.forward async if dspy.Predict supports it.
+            # For now, assuming dspy.Predict's call within forward is blocking and compatible
+            # with being called from an async method directly if the underlying HTTP calls are managed by dspy's LM.
+            # Let's assume for now it's okay to call directly. If it blocks, it needs `await asyncio.to_thread(...)`
+
+            # DSPy LM is now expected to be configured globally by GeminiService.
+            # We still need to ensure it *is* configured before proceeding.
+            import dspy
+            if not hasattr(dspy.settings, 'lm') or not dspy.settings.lm:
+                logger.error("DSPy LM not configured globally. ManipulationService cannot proceed with DSPy analysis.")
+                # Attempting to initialize GeminiService here to trigger config if not already done.
+                # This is a bit of a workaround; ideally, app startup ensures GeminiService is initialized.
+                from backend.services.gemini_service import GeminiService
+                GeminiService() # Initialize to trigger DSPy setup if not already done.
+                if not hasattr(dspy.settings, 'lm') or not dspy.settings.lm:
+                     logger.error("DSPy LM still not configured after attempting GeminiService init. Falling back.")
+                     return self._fallback_text_analysis(transcript)
+                else:
+                    logger.info("DSPy LM was configured after GeminiService explicit initialization.")
+
+            # Assuming dspy_analyzer.forward is synchronous
+            # To run synchronous code in an async function, use asyncio.to_thread
+            import asyncio
+            assessment = await asyncio.to_thread(self.dspy_analyzer.forward, transcript, session_context)
+            return assessment
+
         except Exception as e:
-            logger.error(f"Error in ManipulationService LLM call: {e}")
+            logger.error(f"Error in ManipulationService DSPy call: {e}", exc_info=True)
             return self._fallback_text_analysis(transcript)
 
     def _fallback_text_analysis(self, transcript: str) -> ManipulationAssessment:
@@ -92,6 +96,3 @@ Focus your analysis solely on the provided transcript and session context.
             manipulation_explanation=explanation,
             manipulation_score_analysis=f"Fallback score ({score:.2f}) implies low/moderate manipulation likelihood based on keyword matching."
         )
-
-# Remove the global instance if services are to be instantiated by the main pipeline
-# manipulation_service = ManipulationService()

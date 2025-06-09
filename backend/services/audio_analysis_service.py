@@ -1,135 +1,83 @@
-from backend.models import AudioAnalysis
-from backend.services.gemini_service import GeminiService
+import logging
+from typing import Dict, Any, Optional
 import json
-from typing import Optional, Dict, Any
+import asyncio # For asyncio.to_thread
+
+from backend.models import AudioAnalysis
+from backend.services.gemini_service import GeminiService # To ensure it's initialized for DSPy config
+from backend.dspy_modules import DSPyAudioAnalysisAnalyzer # Import the new DSPy module
+
+logger = logging.getLogger(__name__)
 
 class AudioAnalysisService:
     def __init__(self, gemini_service: Optional[GeminiService] = None):
-        self.gemini_service = gemini_service if gemini_service else GeminiService()
+        # Ensure GeminiService is initialized, which should configure DSPy LM.
+        self.gemini_service_instance = gemini_service if gemini_service else GeminiService()
+        self.dspy_analyzer = DSPyAudioAnalysisAnalyzer()
 
-    async def analyze(self, transcript: str, audio_file_path: Optional[str] = None, audio_duration_seconds: Optional[float] = None, session_context: Optional[Dict[str, Any]] = None) -> AudioAnalysis:
-        # If only transcript is available, we might have limited audio analysis.
-        # The prompt will guide the LLM to use audio if referenced, otherwise infer from text.
+        import dspy # For checking dspy.settings.lm
+        if not hasattr(dspy.settings, 'lm') or not dspy.settings.lm:
+            logger.warning("DSPy LM may not have been configured by GeminiService init as expected in AudioAnalysisService. Analysis might rely on fallbacks.")
+        else:
+            logger.info("AudioAnalysisService initialized; DSPy LM should be configured by GeminiService.")
 
-        # Constructing a context string for the prompt
-        audio_context_parts = []
-        if audio_file_path:
-            audio_context_parts.append(f"An audio file is associated with this transcript at path: {audio_file_path}.")
-        if audio_duration_seconds:
-            audio_context_parts.append(f"The duration of this audio is {audio_duration_seconds:.2f} seconds.")
-        
-        audio_info_for_prompt = " ".join(audio_context_parts)
-        if not audio_info_for_prompt:
-            audio_info_for_prompt = "No direct audio file path or duration provided; infer from transcript where possible."
-
-        prompt = f'''Analyze the provided transcript and associated audio information (if any) to assess audio characteristics.
-You are a multimodal AI capable of analyzing audio if audio data is made available to you alongside this prompt.
-
-Transcript:
-"{transcript if transcript else "Transcript not available."}"
-
-Audio Information:
-{audio_info_for_prompt}
-
-Session Context (if available, use for nuanced understanding):
-{json.dumps(session_context) if session_context else "No additional session context provided."}
-
-Based on the transcript and, more importantly, THE AUDIO DATA if available to you, provide your analysis as a JSON object matching the AudioAnalysis model fields below.
-If audio data is not available for a specific metric, clearly state that the analysis is an inference from text.
-
-1.  speech_clarity_score (float, 0.0 to 1.0): Assess from audio. If audio unavailable, infer from text coherence.
-2.  speech_clarity_analysis (str): Explain the speech clarity assessment based on audio (e.g., articulation, mumbling) or text.
-3.  background_noise_assessment (str, e.g., "Low", "Medium", "High"): Assess from audio. If audio unavailable, infer from textual cues or assume "Low" if no cues.
-4.  background_noise_analysis (str): Detail background noise characteristics from audio (e.g., type of noise, impact) or textual inference.
-5.  average_speech_rate_wpm (int): Calculate from transcript word count and 'audio_duration_seconds' if provided. If duration unknown, estimate from text or state as not calculable.
-6.  speech_rate_variability_analysis (str): From audio, analyze speech rate consistency. If audio unavailable, infer from text patterns (e.g., rushed passages, long pauses implied).
-7.  intonation_patterns_analysis (str): From audio, describe intonation (monotonous, expressive). If audio unavailable, infer from text (punctuation, emotional language).
-8.  overall_audio_quality_assessment (str): Overall qualitative assessment of audio technical quality from audio. If audio unavailable, infer based on other textual inferences.
-9.  audio_duration_seconds (Optional[float]): Use the provided 'audio_duration_seconds' or state if derived/unavailable.
-10. loudness_dbfs (Optional[float]): Assess average loudness from audio. Null if audio unavailable.
-11. loudness_analysis (str): Analyze audio volume levels from audio. If audio unavailable, "Analysis not available."
-12. signal_to_noise_ratio_db (Optional[float]): Estimate SNR from audio. Null if audio unavailable.
-13. signal_to_noise_ratio_analysis (str): Explain SNR and its impact from audio. If audio unavailable, "Analysis not available."
-14. pitch_profile_analysis (str): Analyze pitch characteristics from audio. If audio unavailable, "Analysis not available."
-15. voice_timbre_description (str): Describe voice timbre from audio. If audio unavailable, "Analysis not available."
-16. vocal_effort_assessment (str): Assess vocal effort from audio. If audio unavailable, "Analysis not available."
-17. acoustic_event_detection (List[str]): Detect non-speech acoustic events from audio (e.g., cough, door slam). Empty list if audio unavailable or no events.
-18. acoustic_event_analysis (str): Analyze detected acoustic events from audio. If audio unavailable, "Analysis not available."
-19. pause_characteristics_analysis (str): Analyze pause frequency/duration from audio (silence detection). If audio unavailable, infer from textual markers like "..." or implied pauses.
-20. vocal_stress_indicators_acoustic (List[str]): Identify vocal stress indicators from audio (pitch breaks, tremors). Empty list if audio unavailable.
-21. vocal_stress_indicators_acoustic_analysis (str): Explain acoustically identified vocal stress indicators from audio. If audio unavailable, "Analysis not available."
-
-JSON structure to be returned:
-{{
-  "speech_clarity_score": float,
-  "speech_clarity_analysis": "...",
-  "background_noise_assessment": "...",
-  "background_noise_analysis": "...",
-  "average_speech_rate_wpm": int,
-  "speech_rate_variability_analysis": "...",
-  "intonation_patterns_analysis": "...",
-  "overall_audio_quality_assessment": "...",
-  "audio_duration_seconds": float_or_null,
-  "loudness_dbfs": float_or_null,
-  "loudness_analysis": "...",
-  "signal_to_noise_ratio_db": float_or_null,
-  "signal_to_noise_ratio_analysis": "...",
-  "pitch_profile_analysis": "...",
-  "voice_timbre_description": "...",
-  "vocal_effort_assessment": "...",
-  "acoustic_event_detection": [],
-  "acoustic_event_analysis": "...",
-  "pause_characteristics_analysis": "...",
-  "vocal_stress_indicators_acoustic": [],
-  "vocal_stress_indicators_acoustic_analysis": "..."
-}}
-Prioritize analysis from actual audio data if available to you. If not, make reasonable inferences from the transcript. For analysis fields (e.g., *_analysis), clearly state the basis of your analysis (audio or text).
-'''
+    async def analyze(self, text: str, audio_file_path: Optional[str] = None) -> AudioAnalysis:
+        # audio_file_path is not used by this DSPy module as it infers from text.
+        # Kept for signature consistency if other methods use it.
+        if not text:
+            return AudioAnalysis() # Return default if no text
         
         try:
-            raw_analysis_json = await self.gemini_service.query_gemini_for_raw_json(prompt)
+            # Check DSPy LM configuration
+            import dspy
+            if not hasattr(dspy.settings, 'lm') or not dspy.settings.lm:
+                logger.error("DSPy LM not configured globally. AudioAnalysisService cannot proceed with DSPy analysis.")
+                GeminiService() # Attempt to trigger config
+                if not hasattr(dspy.settings, 'lm') or not dspy.settings.lm:
+                     logger.error("DSPy LM still not configured after attempting GeminiService init. Falling back.")
+                     return self._fallback_text_analysis(text, "DSPy LM not configured.")
+                else:
+                    logger.info("DSPy LM was configured after GeminiService explicit initialization in AudioAnalysisService.analyze.")
+
+            # Use the DSPy module for analysis. Session context is empty as it's not used here.
+            assessment = await asyncio.to_thread(self.dspy_analyzer.forward, text, session_context={})
+            return assessment
             
-            if raw_analysis_json:
-                analysis_data = json.loads(raw_analysis_json)
-                
-                # Ensure audio_duration_seconds from input is preserved if not in LLM response or if LLM should not override
-                if audio_duration_seconds is not None and "audio_duration_seconds" not in analysis_data:
-                    analysis_data["audio_duration_seconds"] = audio_duration_seconds
-                
-                # Calculate WPM if possible and not provided by LLM, or to verify
-                calculated_wpm = analysis_data.get("average_speech_rate_wpm")
-                if transcript and audio_duration_seconds and audio_duration_seconds > 0:
-                    word_count = len(transcript.split())
-                    minutes = audio_duration_seconds / 60.0
-                    if minutes > 0:
-                        wpm_from_data = int(word_count / minutes)
-                        # If LLM didn't provide WPM, or if you prefer to always use calculated WPM:
-                        if calculated_wpm is None or calculated_wpm == 0: # Or some other condition to override
-                           analysis_data["average_speech_rate_wpm"] = wpm_from_data
-                elif calculated_wpm is None: # If no way to calculate and LLM didn't provide
-                     analysis_data["average_speech_rate_wpm"] = 0
-
-
-                return AudioAnalysis(**analysis_data)
-            else:
-                return self._fallback_text_analysis(transcript, audio_duration_seconds)
         except Exception as e:
-            print(f"Error during LLM audio analysis: {e}")
-            return self._fallback_text_analysis(transcript, audio_duration_seconds)
+            logger.error(f"Error in AudioAnalysisService DSPy call: {e}", exc_info=True)
+            return self._fallback_text_analysis(text, f"DSPy module error: {e}")
 
-    def _fallback_text_analysis(self, text: str, audio_duration_seconds: Optional[float] = None) -> AudioAnalysis:
-        # This fallback is purely text-based and very basic.
-        # It won't populate most of the new audio-centric fields.
+    def _fallback_text_analysis(self, text: str, error_message: Optional[str] = None) -> AudioAnalysis:
+        logger.info(f"Performing fallback audio (text-based) analysis for transcript snippet: {text[:100]}...")
+        explanation = "Fallback analysis due to error or unconfigured DSPy LM."
+        if error_message:
+            explanation += f" Error: {error_message}"
+
+        # Basic fallback, returning an empty or minimally populated AudioAnalysis object
+        # This part can be enhanced with simple text heuristics if needed, similar to original _fallback_text_analysis
+        import re
+        clarity = 0.0
+        noise = "Low"
         wpm = 0
-        if text and audio_duration_seconds and audio_duration_seconds > 0:
-            word_count = len(text.split())
-            minutes = audio_duration_seconds / 60.0
-            if minutes > 0:
-                wpm = int(word_count / minutes)
-        
-        clarity_score = 0.5 if text else 0.0
-        quality_assessment = "Fair (text-based fallback)" if text else "Poor (no text)"
+        pauses_data = {}
+        intonation = "Analysis not available (fallback)."
+        quality = explanation # Put the error/fallback reason in quality assessment
 
+        if text:
+            words = text.split()
+            word_count = len(words)
+            if word_count > 0:
+                estimated_duration_minutes = word_count / 150.0 
+                wpm = int(word_count / estimated_duration_minutes) if estimated_duration_minutes > 0 else 0
+
+            fillers = len(re.findall(r'\\b(um|uh|er|ah|like|you know)\\b', text, re.IGNORECASE))
+            text_pauses = text.count("...") + text.count("---")
+            pauses_data = {"fillers": fillers, "textual_pauses": text_pauses}
+            
+            if word_count > 100: clarity = 0.65
+            elif word_count > 20: clarity = 0.5
+            else: clarity = 0.3
+        
         return AudioAnalysis(
             speech_clarity_score=clarity_score,
             speech_clarity_analysis="Fallback: Inferred from text presence.",
