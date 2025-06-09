@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 from enum import Enum
-from typing import Optional, Dict, List, Any
 from datetime import datetime
 
 # --- Pydantic Models for API Documentation ---
@@ -22,51 +21,49 @@ class EmotionScore(BaseModel):
     label: str = Field(default="", description="Emotion label (e.g., \'anger\', \'joy\').")
     score: float = Field(default=0.0, description="Confidence score for the emotion (0.0-1.0).")
 
-class GeminiSummary(BaseModel):
-    tone: str = Field(default="Tone analysis not available.", description="Detailed analysis of speaker\'s tone and manner.")
-    motivation: str = Field(default="Motivation assessment not available.", description="Assessment of underlying motivations and intent.")
-    credibility: str = Field(default="Credibility assessment not available.", description="Specific credibility assessment with reasoning.")
-    emotional_state: str = Field(default="Emotional state analysis not available.", description="Emotional consistency and authenticity analysis.")
-    communication_style: str = Field(default="Communication style analysis not available.", description="Communication patterns and verbal behaviors.")
-    key_concerns: str = Field(default="Key concerns not identified.", description="Main red flags or concerns identified.")
-    strengths: str = Field(default="Strengths not identified.", description="Aspects that support credibility.")
+class NumericalLinguisticMetrics(BaseModel):
+    word_count: int = Field(default=0, description="Total number of words in the transcript.")
+    unique_word_count: int = Field(default=0, description="Total number of unique words in the transcript.")
+    hesitation_marker_count: int = Field(default=0, description="Number of common hesitation markers (e.g., um, uh, er, ah).")
+    filler_word_count: int = Field(default=0, description="Number of common filler words (e.g., like, you know, basically).") # Differentiated from hesitation markers
+    qualifier_count: int = Field(default=0, description="Number of uncertainty qualifiers (e.g., maybe, perhaps, might, sort of, kind of).")
+    certainty_indicator_count: int = Field(default=0, description="Number of certainty indicators (e.g., definitely, absolutely, sure, clearly).")
+    repetition_count: int = Field(default=0, description="Number of significant word or phrase repetitions detected.")
+    sentence_count: int = Field(default=0, description="Total number of sentences.")
+    avg_word_length_chars: float = Field(default=0.0, description="Average word length in characters.")
+    avg_sentence_length_words: float = Field(default=0.0, description="Average number of words per sentence.")
+    speech_rate_wpm: Optional[float] = Field(default=None, description="Speech rate in words per minute (calculated if audio duration is known or can be estimated).")
+    hesitation_rate_hpm: Optional[float] = Field(default=None, description="Hesitation markers per minute (calculated if audio duration is known or can be estimated).")
+    vocabulary_richness_ttr: float = Field(default=0.0, description="Type-Token Ratio (unique words / total words) as a measure of vocabulary richness.")
+    confidence_metric_ratio: Optional[float] = Field(default=None, description="Ratio of certainty indicators to the sum of certainty and uncertainty indicators. Ranges from 0 (all uncertainty) to 1 (all certainty), or None if no indicators found.")
+    formality_score_calculated: float = Field(default=0.0, description="Calculated formality score (0-100) based on specific linguistic cues, not LLM opinion.")
+    complexity_score_calculated: float = Field(default=0.0, description="Calculated linguistic complexity score (0-100) based on metrics like sentence length, word length, etc.")
 
 class LinguisticAnalysis(BaseModel):
-    # Quantitative metrics
-    word_count: int = Field(default=0, description="Total number of words in the transcript.")
-    hesitation_count: int = Field(default=0, description="Number of hesitation markers (um, uh, er, ah, like, you know).")
-    qualifier_count: int = Field(default=0, description="Number of uncertainty qualifiers (maybe, perhaps, might, etc.).")
-    certainty_count: int = Field(default=0, description="Number of certainty indicators (definitely, absolutely, sure, etc.).")
-    filler_count: int = Field(default=0, description="Number of filler words (um, uh, er, ah).")
-    repetition_count: int = Field(default=0, description="Number of word repetitions detected.")
-    formality_score: float = Field(default=0.0, description="Formality score (0-100) based on formal language usage.")
-    complexity_score: float = Field(default=0.0, description="Linguistic complexity score (0-100).")
-    avg_word_length: float = Field(default=0.0, description="Average word length in characters.")
-    avg_words_per_sentence: float = Field(default=0.0, description="Average number of words per sentence.")
-    sentence_count: int = Field(default=0, description="Total number of sentences.")
-    speech_rate_wpm: Optional[float] = Field(None, description="Speech rate in words per minute (if duration available).")
-    hesitation_rate: Optional[float] = Field(None, description="Hesitation rate per minute (if duration available).")
-    confidence_ratio: float = Field(default=0.0, description="Ratio of certainty to uncertainty indicators (0-1).")
-    
-    # Descriptive analysis (for backwards compatibility)
-    speech_patterns: str = Field(default="Speech patterns analysis not available.", description="Analysis of speech rhythm, pace, pauses.")
-    word_choice: str = Field(default="Word choice analysis not available.", description="Analysis of vocabulary and phrasing choices.")
-    emotional_consistency: str = Field(default="Emotional consistency analysis not available.", description="Consistency between claimed emotions and expression.")
-    detail_level: str = Field(default="Detail level analysis not available.", description="Appropriate level of detail vs vagueness.")
+    # Descriptive analysis (for backwards compatibility or direct LLM assessment)
+    speech_patterns_description: str = Field(default="Speech patterns analysis not available.", description="LLM analysis of speech rhythm, pace, pauses not covered by specific counts.")
+    word_choice_description: str = Field(default="Word choice analysis not available.", description="LLM analysis of vocabulary and phrasing choices, beyond simple counts.")
+    emotional_consistency_description: str = Field(default="Emotional consistency analysis not available.", description="LLM assessment of consistency between claimed emotions and linguistic expression.")
+    detail_level_description: str = Field(default="Detail level analysis not available.", description="LLM assessment of whether the level of detail is appropriate versus vague or overly granular.")
 
-    # New fields for linguistic analysis
-    pause_analysis: str = Field(default="Pause analysis not available.", description="Analysis of pauses and their significance.")
-    filler_word_analysis: str = Field(default="Filler word analysis not available.", description="Analysis of filler words and their impact.")
-    repetition_analysis: str = Field(default="Repetition analysis not available.", description="Analysis of word repetitions and their implications.")
-    hesitation_analysis: str = Field(default="Hesitation analysis not available.", description="Analysis of hesitation markers and their impact.")
-    qualifier_analysis: str = Field(default="Qualifier analysis not available.", description="Analysis of uncertainty qualifiers and their impact.")
-    certainty_analysis: str = Field(default="Certainty analysis not available.", description="Analysis of certainty indicators and their impact.")
-    formality_analysis: str = Field(default="Formality analysis not available.", description="Analysis of formality in language usage.")
-    complexity_analysis: str = Field(default="Complexity analysis not available.", description="Analysis of linguistic complexity and its implications.")
-    avg_word_length_analysis: str = Field(default="Average word length analysis not available.", description="Analysis of average word length and its implications.")
-    avg_words_per_sentence_analysis: str = Field(default="Average words per sentence analysis not available.", description="Analysis of average words per sentence and its implications.")
-    sentence_count_analysis: str = Field(default="Sentence count analysis not available.", description="Analysis of sentence count and its implications.")
-    overall_linguistic_analysis: str = Field(default="Overall linguistic analysis not available.", description="Overall analysis of linguistic patterns and their implications.")
+    # LLM-generated analysis of numerical linguistic data (referencing NumericalLinguisticMetrics)
+    word_count_analysis: str = Field(default="Word count analysis not available.", description="LLM interpretation of the significance of the word count in context.")
+    hesitation_marker_analysis: str = Field(default="Hesitation marker analysis not available.", description="LLM interpretation of the impact of hesitation markers on communication.")
+    filler_word_analysis: str = Field(default="Filler word analysis not available.", description="LLM interpretation of the impact of filler words on communication.")
+    qualifier_analysis: str = Field(default="Qualifier analysis not available.", description="LLM interpretation of the impact of uncertainty qualifiers.")
+    certainty_indicator_analysis: str = Field(default="Certainty indicator analysis not available.", description="LLM interpretation of the impact of certainty indicators.")
+    repetition_analysis: str = Field(default="Repetition analysis not available.", description="LLM interpretation of word/phrase repetitions and their implications.")
+    sentence_count_analysis: str = Field(default="Sentence count analysis not available.", description="LLM interpretation of the sentence count in context.")
+    avg_word_length_analysis: str = Field(default="Average word length analysis not available.", description="LLM interpretation of average word length and its implications.")
+    avg_sentence_length_analysis: str = Field(default="Average sentence length analysis not available.", description="LLM interpretation of average sentence length and its implications.")
+    speech_rate_analysis: str = Field(default="Speech rate analysis not available.", description="LLM interpretation of speech rate (WPM) and its impact, if WPM is available.")
+    hesitation_rate_analysis: str = Field(default="Hesitation rate analysis not available.", description="LLM interpretation of hesitation rate (HPM) and its impact, if HPM is available.")
+    vocabulary_richness_analysis: str = Field(default="Vocabulary richness analysis not available.", description="LLM interpretation of vocabulary richness (TTR) and its implications.")
+    confidence_metric_analysis: str = Field(default="Confidence metric analysis not available.", description="LLM interpretation of the calculated confidence metric ratio.")
+    formality_score_analysis: str = Field(default="Formality score analysis not available.", description="LLM interpretation of the calculated formality score.")
+    complexity_score_analysis: str = Field(default="Complexity score analysis not available.", description="LLM interpretation of the calculated complexity score.")
+    pause_occurrence_analysis: str = Field(default="Pause analysis not available.", description="LLM analysis of pauses (based on transcript markers or audio silence detection) and their significance.") # Renamed from pause_analysis
+    overall_linguistic_style_summary: str = Field(default="Overall linguistic style summary not available.", description="LLM's comprehensive summary of linguistic patterns and their implications.") # Renamed from overall_linguistic_analysis
 
 class RiskAssessment(BaseModel):
     overall_risk: str = Field(default="Risk assessment not available.", description="Overall risk level (low/medium/high).")
@@ -109,14 +106,6 @@ class PatternDetail(BaseModel):
     occurrences: int
     examples: List[str] = Field(default_factory=list)
     significance_score: Optional[float] = None # 0-1 scale
-
-class LinguisticFeature(BaseModel):
-    word_count: int = 0
-    unique_words: int = 0
-    sentence_count: int = 0
-    avg_sentence_length: float = 0.0
-    vocabulary_richness: Optional[float] = None # TTR or similar
-    # Potentially more features like POS tags, named entities counts etc.
 
 class DialogueAct(BaseModel):
     speaker: str
@@ -181,11 +170,17 @@ class EnhancedUnderstanding(BaseModel):
 
 class PsychologicalAnalysis(BaseModel):
     emotional_state: str = Field(default="Neutral", description="Overall emotional state inferred.")
+    emotional_state_analysis: str = Field(default="Analysis not available.", description="Detailed analysis of the inferred emotional state.") # Added
     cognitive_load: str = Field(default="Normal", description="Inferred cognitive load (e.g., Low, Normal, High).")
+    cognitive_load_analysis: str = Field(default="Analysis not available.", description="Detailed analysis of the inferred cognitive load.") # Added
     stress_level: float = Field(default=0.0, description="Inferred stress level (0.0 to 1.0).")
+    stress_level_analysis: str = Field(default="Analysis not available.", description="Detailed analysis of the inferred stress level.")
     confidence_level: float = Field(default=0.0, description="Inferred confidence level (0.0 to 1.0).")
+    confidence_level_analysis: str = Field(default="Analysis not available.", description="Detailed analysis of the inferred confidence level.") # Added
     psychological_summary: str = Field(default="Analysis not available.", description="Summary of the psychological state analysis.")
     potential_biases: List[str] = Field(default_factory=list, description="Identified potential cognitive biases.")
+    potential_biases_analysis: str = Field(default="Analysis not available.", description="Detailed analysis of the identified potential cognitive biases and their possible impact.") # Added
+
 class SessionInsights(BaseModel):
     consistency_analysis: str = Field(default="Consistency analysis not available.", description="Analysis of consistency patterns across session interactions.")
     behavioral_evolution: str = Field(default="Behavioral evolution analysis not available.", description="How speaker behavior has evolved throughout the session.")
@@ -203,20 +198,50 @@ class SessionInsights(BaseModel):
     
 
 class AudioAnalysis(BaseModel):
+    # Existing fields, some refined for clarity and with added analysis fields
     speech_clarity_score: float = Field(default=0.0, description="Clarity of speech (0.0 to 1.0).")
-    background_noise_level: str = Field(default="Low", description="Level of background noise (e.g., Low, Medium, High).")
-    speech_rate_wpm: int = Field(default=0, description="Average speech rate in words per minute.")
-    pauses_and_fillers: Dict[str, int] = Field(default_factory=dict, description="Count of pauses and fillers, e.g., {'pauses': 5, 'um': 2}.")
-    intonation_patterns: str = Field(default="Analysis not available.", description="Description of intonation patterns observed.")
-    audio_quality_assessment: str = Field(default="Analysis not available.", description="Overall assessment of audio quality.")
+    speech_clarity_analysis: Optional[str] = Field(default="Analysis not available.", description="Explanation of the speech clarity assessment.")
 
-class QuantitativeMetrics(BaseModel):
-    talk_to_listen_ratio: float = Field(default=0.0, description="Ratio of talking time to listening time for a speaker or overall.")
-    speaker_turn_duration_avg: float = Field(default=0.0, description="Average duration of speaker turns in seconds.")
-    interruptions_count: int = Field(default=0, description="Number of interruptions detected.")
-    sentiment_trend: List[Dict[str, float]] = Field(default_factory=list, description="Trend of sentiment over time, e.g., [{'time': 10.5, 'sentiment': 0.7}].")
-    word_count: int = Field(default=0, description="Total word count.")
-    vocabulary_richness_score: float = Field(default=0.0, description="Score indicating richness of vocabulary (e.g., TTR).")
+    background_noise_assessment: str = Field(default="Low", description="Qualitative level of background noise (e.g., Low, Medium, High).")
+    background_noise_analysis: Optional[str] = Field(default="Analysis not available.", description="Details about the background noise characteristics and impact.")
+
+    average_speech_rate_wpm: int = Field(default=0, description="Average speech rate in words per minute, derived from audio timing and transcript word count.")
+    speech_rate_variability_analysis: Optional[str] = Field(default="Analysis not available.", description="Analysis of speech rate consistency and significant variations observed in the audio.")
+
+    intonation_patterns_analysis: str = Field(default="Analysis not available.", description="Description of intonation patterns (e.g., monotonous, expressive, questioning) and their perceived implications from the audio.")
+
+    overall_audio_quality_assessment: str = Field(default="Analysis not available.", description="Overall qualitative assessment of the audio recording's technical quality.")
+
+    # New fields for deeper audio analysis
+    audio_duration_seconds: Optional[float] = Field(default=None, description="Duration of the analyzed audio segment in seconds.")
+
+    loudness_dbfs: Optional[float] = Field(default=None, description="Average loudness of the audio in dBFS.")
+    loudness_analysis: Optional[str] = Field(default="Analysis not available.", description="Analysis of audio volume levels (e.g., too quiet, too loud, appropriate, dynamic range).")
+
+    signal_to_noise_ratio_db: Optional[float] = Field(default=None, description="Estimated signal-to-noise ratio in dB.")
+    signal_to_noise_ratio_analysis: Optional[str] = Field(default="Analysis not available.", description="Explanation of SNR and its impact on intelligibility.")
+
+    pitch_profile_analysis: Optional[str] = Field(default="Analysis not available.", description="Analysis of pitch characteristics from the audio (e.g., average, range, variability, common contours) and perceived meaning.")
+
+    voice_timbre_description: Optional[str] = Field(default="Analysis not available.", description="Description of voice timbre/quality observed in the audio (e.g., resonant, thin, hoarse, nasal, breathy).")
+
+    vocal_effort_assessment: Optional[str] = Field(default="Analysis not available.", description="Assessment of vocal effort apparent in the audio (e.g., strained, relaxed, projected, whispered).")
+
+    acoustic_event_detection: List[str] = Field(default_factory=list, description="Notable non-speech acoustic events detected from the audio (e.g., cough, door slam, laughter).")
+    acoustic_event_analysis: Optional[str] = Field(default="Analysis not available.", description="Analysis of detected acoustic events and their potential relevance or impact.")
+
+    pause_characteristics_analysis: Optional[str] = Field(default="Analysis not available.", description="Analysis of pause frequency, duration, and placement from an acoustic perspective (silence detection).")
+
+    vocal_stress_indicators_acoustic: List[str] = Field(default_factory=list, description="Acoustically identified vocal stress indicators from the audio (e.g., pitch breaks, voice tremors, strained phonation).")
+    vocal_stress_indicators_acoustic_analysis: Optional[str] = Field(default="Analysis not available.", description="Explanation of the acoustically identified vocal stress indicators.")
+
+
+class InteractionMetrics(BaseModel): # Renamed from QuantitativeMetrics
+    talk_to_listen_ratio: Optional[float] = Field(default=None, description="Ratio of talking time for a primary speaker to total speaking time or to other speakers' time. Context-dependent.")
+    speaker_turn_duration_avg_seconds: Optional[float] = Field(default=None, description="Average duration of speaker turns in seconds, if speaker diarization is available.")
+    interruptions_count: Optional[int] = Field(default=None, description="Number of interruptions detected, typically requiring diarization or explicit markers.")
+    sentiment_trend: List[Dict[str, Any]] = Field(default_factory=list, description="Trend of sentiment over time or segments, e.g., [{'segment': 'opening', 'sentiment_score': 0.7, 'sentiment_label': 'positive'}].")
+    # Removed word_count and vocabulary_richness_score as they are in NumericalLinguisticMetrics
 
 class ConversationFlow(BaseModel):
     engagement_level: str = Field(default="Medium", description="Overall engagement level (e.g., Low, Medium, High).")
@@ -240,11 +265,11 @@ class AnalyzeResponse(BaseModel):
     summary: str = "Analysis not available."
     alerts: List[str] = Field(default_factory=list)
     patterns_identified: List[PatternDetail] = Field(default_factory=list)
-    linguistic_features: Optional[LinguisticFeature] = None
+    numerical_linguistic_metrics: Optional[NumericalLinguisticMetrics] = None # Added
     dialogue_acts: List[DialogueAct] = Field(default_factory=list)
     speaker_diarization: List[SpeakerSegment] = Field(default_factory=list)
     confidence_score: float = Field(default=0.0, description="Overall confidence in the analysis results.")
-    version: str = "2.0.0" # Updated version due to significant model changes
+    version: str = "2.1.0" # Updated version due to significant model changes
 
     # Modularized analysis components
     manipulation_assessment: Optional[ManipulationAssessment] = None
@@ -253,7 +278,8 @@ class AnalyzeResponse(BaseModel):
     enhanced_understanding: Optional[EnhancedUnderstanding] = None
     psychological_analysis: Optional[PsychologicalAnalysis] = None
     audio_analysis: Optional[AudioAnalysis] = None
-    quantitative_metrics: Optional[QuantitativeMetrics] = None
+    interaction_metrics: Optional[InteractionMetrics] = None # Updated from quantitative_metrics
+    linguistic_analysis: Optional[LinguisticAnalysis] = None # Ensure this is added if it wasn't explicitly part of AnalyzeResponse before
     conversation_flow: Optional[ConversationFlow] = None
 
 class ProgressUpdate(BaseModel):
@@ -313,16 +339,16 @@ class SessionListItem(BaseModel):
     status: SessionStatus
     created_at: str
 
-class SessionInsightsInput(BaseModel):
+class SessionInsightsInput(BaseModel): # This is for multi-session analysis
     session_ids: List[str]
     insight_types: Optional[List[str]] = None # e.g., ["sentiment_trend", "topic_comparison"]
 
-class SessionInsight(BaseModel):
+class SessionInsight(BaseModel): # This is for multi-session analysis
     insight_type: str
     data: Any # Could be charts, tables, text summaries
     description: Optional[str] = None
 
-class SessionInsightsResponse(BaseModel):
+class SessionInsightsResponse(BaseModel): # This is for multi-session analysis
     requested_session_ids: List[str]
     insights: List[SessionInsight] = Field(default_factory=list)
     summary_across_sessions: Optional[str] = None

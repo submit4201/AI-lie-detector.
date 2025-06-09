@@ -143,3 +143,77 @@ If specific details cannot be reliably inferred, use appropriate defaults like "
             conversation_phase=phase,
             flow_disruptions=disruptions
         )
+
+    async def analyze_conversation_flow(self, transcript: str, session_context: str = None) -> ConversationFlow:
+        prompt = f"""
+Analyze the conversation flow based on the following transcript.
+Consider turn-taking, topic shifts, conversation depth, engagement, balance, clarity, and coherence.
+Identify any disruptions or enhancers to the flow.
+Provide a summary of the conversation flow.
+
+Transcript:
+{transcript}
+
+Session Context (if any):
+{session_context if session_context else "No specific session context provided."}
+
+Please return your analysis in a JSON format with the following fields:
+- turn_taking_frequency (e.g., "High", "Medium", "Low", or specific metrics if inferable)
+- topic_shifts (e.g., "Frequent and abrupt", "Smooth and logical", "Few")
+- conversation_depth (e.g., "Superficial", "Moderate", "Deep")
+- engagement_levels (e.g., "High for all participants", "Mixed", "Low")
+- conversation_balance (e.g., "Balanced", "Dominated by one speaker")
+- clarity_and_coherence (e.g., "Clear and coherent", "Sometimes unclear", "Fragmented")
+- summary_of_flow (A brief narrative summary)
+- flow_disruptions (List of observed disruptions, e.g., ["Frequent interruptions", "Long silences"])
+- flow_enhancers (List of observed enhancers, e.g., ["Active listening cues", "Clear topic transitions"])
+- turn_taking_frequency_analysis (Your reasoning for the turn_taking_frequency assessment)
+- topic_shifts_analysis (Your reasoning for the topic_shifts assessment)
+- conversation_depth_analysis (Your reasoning for the conversation_depth assessment)
+- engagement_levels_analysis (Your reasoning for the engagement_levels assessment)
+- conversation_balance_analysis (Your reasoning for the conversation_balance assessment)
+- clarity_and_coherence_analysis (Your reasoning for the clarity_and_coherence assessment)
+- summary_of_flow_analysis (Your reasoning for the summary_of_flow)
+- flow_disruptions_analysis (Your reasoning for identifying these flow_disruptions)
+- flow_enhancers_analysis (Your reasoning for identifying these flow_enhancers)
+
+If specific data is unavailable or analysis is not possible for a field, use appropriate default values like "N/A", "Could not determine", empty lists for list types, or a neutral assessment.
+Ensure all fields are present in your JSON response.
+IMPORTANT: Your entire response must be only the JSON object, with no surrounding text, explanations, or markdown formatting.
+"""
+        try:
+            response_json_str = await self.gemini_service.query_gemini_for_raw_json(prompt)
+            response_data = json.loads(response_json_str)
+            
+            # Ensure all expected fields are present in the response
+            expected_fields = [
+                "turn_taking_frequency", "topic_shifts", "conversation_depth",
+                "engagement_levels", "conversation_balance", "clarity_and_coherence",
+                "summary_of_flow", "flow_disruptions", "flow_enhancers",
+                "turn_taking_frequency_analysis", "topic_shifts_analysis",
+                "conversation_depth_analysis", "engagement_levels_analysis",
+                "conversation_balance_analysis", "clarity_and_coherence_analysis",
+                "summary_of_flow_analysis", "flow_disruptions_analysis", "flow_enhancers_analysis"
+            ]
+            
+            # Fill missing fields with default values
+            for field in expected_fields:
+                if field not in response_data:
+                    if "analysis" in field or field in ["summary_of_flow", "turn_taking_frequency", "topic_shifts", "conversation_depth", "engagement_levels", "conversation_balance", "clarity_and_coherence"]:
+                        response_data[field] = "N/A"  # Default for analysis and summary fields
+                    elif field in ["flow_disruptions", "flow_enhancers"]:
+                        response_data[field] = []  # Default to empty list
+                    else:
+                        response_data[field] = "Could not determine"  # Generic default
+
+            return ConversationFlow(
+                engagement_level=response_data.get("engagement_levels", "Analysis not available"),
+                topic_coherence_score=response_data.get("topic_coherence_score", 0.0),
+                conversation_dominance=response_data.get("conversation_dominance", {}),
+                turn_taking_efficiency=response_data.get("turn_taking_frequency", "Analysis not available"),
+                conversation_phase=response_data.get("conversation_phase", "Analysis not available"),
+                flow_disruptions=response_data.get("flow_disruptions", [])
+            )
+        except Exception as e:
+            print(f"Error during enhanced conversation flow analysis: {e}")
+            return self._fallback_text_analysis(transcript, None, None)
