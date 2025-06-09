@@ -1,6 +1,6 @@
 // Test frontend API call simulation
-// Use an environment variable for the API URL, with a default fallback
-const API_URL = process.env.API_URL || 'http://localhost:8001';
+// Use a browser-compatible way to set the API URL
+const API_URL = 'http://localhost:8001';
 
 async function testFrontendAPICall() {
     try {
