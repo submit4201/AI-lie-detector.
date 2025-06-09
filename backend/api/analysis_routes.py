@@ -30,10 +30,44 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
     """WebSocket endpoint for real-time analysis updates"""
     await analysis_streamer.connect(websocket, session_id)
     try:
+        ping_interval = 20  # seconds
+        timeout = 30  # seconds
+        last_pong = asyncio.get_event_loop().time()
+
         while True:
-            # Keep connection alive and listen for client messages
-            data = await websocket.receive_text()
-            # Could handle client commands here if needed
+            try:
+                # Send a ping to the client
+                await websocket.send_ping()
+
+                # Wait for a message or pong response with a timeout
+                done, pending = await asyncio.wait(
+                    [
+                        websocket.receive_text(),
+                        websocket.receive_pong(),
+                    ],
+                    timeout=timeout,
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+
+                # Handle received messages or pongs
+                for task in done:
+                    if task is websocket.receive_text():
+                        data = task.result()
+                        # Could handle client commands here if needed
+                    elif task is websocket.receive_pong():
+                        last_pong = asyncio.get_event_loop().time()
+
+                # Check if the client has stopped responding
+                if asyncio.get_event_loop().time() - last_pong > ping_interval:
+                    logger.warning(f"Client {session_id} unresponsive, closing connection.")
+                    break
+
+            except asyncio.TimeoutError:
+                logger.warning(f"Timeout waiting for client {session_id}, closing connection.")
+                break
+            except WebSocketDisconnect:
+                logger.info(f"Client {session_id} disconnected.")
+                break
     except WebSocketDisconnect:
         analysis_streamer.disconnect(session_id)
 
