@@ -58,7 +58,7 @@ class AnalysisStreamer:
                     "type": "analysis_update",
                     "analysis_type": analysis_type,
                     "data": payload_data,
-                    "timestamp": str(asyncio.get_event_loop().time())
+                    "timestamp": str(time.time())
                 }
                 await self.active_connections[session_id].send_text(json.dumps(message))
                 logger.info(f"Sent {analysis_type} update to session {session_id}")
