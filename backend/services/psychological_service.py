@@ -1,62 +1,57 @@
-# backend/services/psychological_service.py
 import logging
+from typing import Dict, Any, Optional
 import json
-from typing import Dict, Any
-from backend.models import PsychologicalAnalysis # Ensure this import is correct
-from backend.services.gemini_service import GeminiService
+import asyncio # For asyncio.to_thread
+
+from backend.models import PsychologicalAnalysis
+from backend.services.gemini_service import GeminiService # To ensure it's initialized for DSPy config
+from backend.dspy_modules import DSPyPsychologicalAnalyzer # Import the new DSPy module
 
 logger = logging.getLogger(__name__)
 
 class PsychologicalService:
-    def __init__(self, gemini_service: GeminiService):
-        self.gemini_service = gemini_service
+    def __init__(self, gemini_service: Optional[GeminiService] = None):
+        # Ensure GeminiService is initialized, which should configure DSPy LM.
+        self.gemini_service_instance = gemini_service if gemini_service else GeminiService()
+        self.dspy_analyzer = DSPyPsychologicalAnalyzer()
 
-    def _fallback_analysis(self, transcript_snippet: str) -> PsychologicalAnalysis:
-        logger.warning(f"PsychologicalService: LLM call failed or returned malformed data for transcript snippet: {transcript_snippet}. Falling back to default.")
-        return PsychologicalAnalysis()
+        import dspy # For checking dspy.settings.lm
+        if not hasattr(dspy.settings, 'lm') or not dspy.settings.lm:
+            logger.warning("DSPy LM may not have been configured by GeminiService init as expected in PsychologicalService. Analysis might rely on fallbacks.")
+        else:
+            logger.info("PsychologicalService initialized; DSPy LM should be configured by GeminiService.")
 
-    async def analyze(self, transcript: str, session_context: Dict[str, Any] = None) -> PsychologicalAnalysis:
-        """
-        Performs psychological analysis on the given transcript using an LLM.
-        """
-        transcript_snippet = transcript[:500]
-        logger.info(f"Performing psychological analysis for transcript snippet: {transcript_snippet}...")
+    async def analyze(self, transcript: str, session_context: Optional[Dict[str, Any]] = None) -> PsychologicalAnalysis:
+        if not transcript:
+            return PsychologicalAnalysis()
 
-        prompt = f"""
-Analyze the speaker's psychological state based on the following transcript.
-Transcript:
-"{transcript}"
-
-Based on the transcript, provide a JSON object with the following fields:
-- "cognitive_load": A string assessing the speaker's cognitive load (e.g., "low", "moderate", "high", "overwhelmed"). Provide a brief justification.
-- "emotional_regulation": A string assessing the speaker's emotional regulation capabilities (e.g., "well-regulated", "shows signs of dysregulation", "struggling with emotional control"). Provide a brief justification.
-- "personality_traits_inferred": A list of strings, where each string describes an inferred personality trait (e.g., "appears introverted", "shows extroverted tendencies", "seems anxious", "displays confidence").
-- "psychological_summary": A brief textual summary of the overall psychological assessment.
-- "stress_indicators": A list of strings identifying specific phrases or cues in the transcript that indicate stress or pressure.
-- "coping_mechanisms_observed": A list of strings describing any observed coping mechanisms (e.g., "uses humor to deflect", "rationalizes extensively", "seeks reassurance").
-- "speech_coherence_level": A string describing the coherence of speech (e.g., "highly coherent", "mostly coherent with minor digressions", "shows signs of incoherence").
-
-Return ONLY the JSON object.
-Example:
-{{
-  "cognitive_load": "moderate - speaker pauses frequently, suggesting careful thought or difficulty processing.",
-  "emotional_regulation": "well-regulated - maintains a calm tone despite discussing sensitive topics.",
-  "personality_traits_inferred": ["appears reflective", "cautious in responses"],
-  "psychological_summary": "The speaker seems to be under moderate cognitive load but is managing emotions effectively. They present as a reflective and cautious individual.",
-  "stress_indicators": ["repeated use of 'um' and 'uh'", "mentions feeling 'a bit overwhelmed'"],
-  "coping_mechanisms_observed": ["uses self-deprecating humor"],
-  "speech_coherence_level": "mostly coherent with minor digressions"
-}}
-"""
         try:
-            raw_response = await self.gemini_service.query_gemini_for_raw_json(prompt)
-            if raw_response:
-                return PsychologicalAnalysis(**raw_response)
-            else:
-                logger.warning(f"PsychologicalService: Received no response from LLM for transcript snippet: {transcript_snippet}.")
-                return self._fallback_analysis(transcript_snippet)
-        except (json.JSONDecodeError, TypeError, Exception) as e:
-            logger.error(f"PsychologicalService: Error processing LLM response for transcript snippet: {transcript_snippet}. Error: {e}")
-            return self._fallback_analysis(transcript_snippet)
+            # Check DSPy LM configuration
+            import dspy
+            if not hasattr(dspy.settings, 'lm') or not dspy.settings.lm:
+                logger.error("DSPy LM not configured globally. PsychologicalService cannot proceed with DSPy analysis.")
+                GeminiService() # Attempt to trigger config
+                if not hasattr(dspy.settings, 'lm') or not dspy.settings.lm:
+                     logger.error("DSPy LM still not configured after attempting GeminiService init. Falling back.")
+                     return self._fallback_analysis(transcript, "DSPy LM not configured.")
+                else:
+                    logger.info("DSPy LM was configured after GeminiService explicit initialization in PsychologicalService.analyze.")
 
-# psychological_service = PsychologicalService() # Commented out global instantiation
+            # Use the DSPy module for analysis
+            assessment = await asyncio.to_thread(self.dspy_analyzer.forward, transcript, session_context)
+            return assessment
+
+        except Exception as e:
+            logger.error(f"Error in PsychologicalService DSPy call: {e}", exc_info=True)
+            return self._fallback_analysis(transcript, f"DSPy module error: {e}")
+
+    def _fallback_analysis(self, transcript: str, error_message: Optional[str] = None) -> PsychologicalAnalysis:
+        logger.info(f"Performing fallback psychological analysis for transcript snippet: {transcript[:100]}...")
+        explanation = "Fallback analysis due to error or unconfigured DSPy LM."
+        if error_message:
+            explanation += f" Error: {error_message}"
+
+        return PsychologicalAnalysis(
+            psychological_summary=explanation
+            # Other fields will use their defaults from Pydantic model
+        )

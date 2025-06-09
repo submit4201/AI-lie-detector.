@@ -1,64 +1,66 @@
-# backend/services/speaker_attitude_service.py
 import logging
-import json
 from typing import Dict, Any, Optional
-from backend.models import SpeakerAttitude # Ensure this import is correct and SpeakerAttitude is defined in models.py
-from backend.services.gemini_service import GeminiService
+import json
+import asyncio # For asyncio.to_thread
+
+from backend.models import SpeakerAttitude
+from backend.services.gemini_service import GeminiService # To ensure it's initialized for DSPy config
+from backend.dspy_modules import DSPySpeakerAttitudeAnalyzer # Import the new DSPy module
 
 logger = logging.getLogger(__name__)
 
 class SpeakerAttitudeService:
-    def __init__(self, gemini_service: GeminiService):
-        self.gemini_service = gemini_service
+    def __init__(self, gemini_service: Optional[GeminiService] = None): # Allow None for flexibility, will be initialized if None
+        # Ensure GeminiService is initialized, which should configure DSPy LM.
+        self.gemini_service_instance = gemini_service if gemini_service else GeminiService()
+        self.dspy_analyzer = DSPySpeakerAttitudeAnalyzer()
 
-    def _fallback_analysis(self, transcript_snippet: str) -> SpeakerAttitude:
-        logger.warning(f"SpeakerAttitudeService: LLM call failed or returned malformed data for transcript snippet: {transcript_snippet}. Falling back to default.")
-        return SpeakerAttitude() # Relies on default_factory or default values in Pydantic model
+        import dspy # For checking dspy.settings.lm
+        if not hasattr(dspy.settings, 'lm') or not dspy.settings.lm:
+            logger.warning("DSPy LM may not have been configured by GeminiService init as expected in SpeakerAttitudeService. Analysis might rely on fallbacks.")
+        else:
+            logger.info("SpeakerAttitudeService initialized; DSPy LM should be configured by GeminiService.")
 
-    async def analyze(self, transcript: str, session_context: Dict[str, Any] = None) -> SpeakerAttitude:
-        """
-        Performs speaker attitude analysis on the given transcript using an LLM.
-        """
-        transcript_snippet = transcript[:500] # Use a snippet for brevity in logs if needed
-        logger.info(f"Performing speaker attitude analysis for transcript snippet: {transcript_snippet}...")
 
-        prompt = f"""
-Analyze the speaker's attitude in the following transcript.
-Transcript:
-"{transcript}"
+    async def analyze(self, transcript: str, session_context: Optional[Dict[str, Any]] = None) -> SpeakerAttitude:
+        if not transcript:
+            return SpeakerAttitude()
 
-Based on the transcript, provide a JSON object with the following fields:
-- "respect_level_score": An integer score from 0 to 100 indicating the level of respect shown by the speaker.
-- "sarcasm_detected": A boolean indicating if sarcasm is detected.
-- "sarcasm_confidence_score": A float score from 0.0 to 1.0 indicating the confidence in sarcasm detection.
-- "tone_indicators_respect_sarcasm": A list of strings, where each string is a textual cue or indicator from the transcript supporting the respect and sarcasm assessment.
-- "attitude_summary": A brief textual summary of the overall speaker attitude.
-- "emotional_tone": A string describing the primary emotional tone (e.g., "neutral", "angry", "joyful", "anxious", "frustrated").
-- "confidence_level_speech": A string describing the speaker's confidence level (e.g., "confident", "hesitant", "assertive", "timid").
-- "engagement_level": A string describing the speaker's engagement level (e.g., "engaged", "disinterested", "bored", "attentive").
-
-Return ONLY the JSON object.
-Example:
-{{
-  "respect_level_score": 75,
-  "sarcasm_detected": false,
-  "sarcasm_confidence_score": 0.1,
-  "tone_indicators_respect_sarcasm": ["Used polite phrases like 'please'", "Maintained a calm tone"],
-  "attitude_summary": "The speaker was generally respectful and engaged, with no clear signs of sarcasm.",
-  "emotional_tone": "neutral",
-  "confidence_level_speech": "confident",
-  "engagement_level": "engaged"
-}}
-"""
         try:
-            raw_response = await self.gemini_service.query_gemini_for_raw_json(prompt)
-            if raw_response:
-                return SpeakerAttitude(**raw_response)
-            else:
-                logger.warning(f"SpeakerAttitudeService: Received no response from LLM for transcript snippet: {transcript_snippet}.")
-                return self._fallback_analysis(transcript_snippet)
-        except (json.JSONDecodeError, TypeError, Exception) as e:
-            logger.error(f"SpeakerAttitudeService: Error processing LLM response for transcript snippet: {transcript_snippet}. Error: {e}")
-            return self._fallback_analysis(transcript_snippet)
+            # Check DSPy LM configuration
+            import dspy
+            if not hasattr(dspy.settings, 'lm') or not dspy.settings.lm:
+                logger.error("DSPy LM not configured globally. SpeakerAttitudeService cannot proceed with DSPy analysis.")
+                # Attempt to initialize GeminiService here to trigger config if not already done.
+                GeminiService() # Initialize to trigger DSPy setup if not already done.
+                if not hasattr(dspy.settings, 'lm') or not dspy.settings.lm:
+                     logger.error("DSPy LM still not configured after attempting GeminiService init. Falling back.")
+                     return self._fallback_analysis(transcript, "DSPy LM not configured.")
+                else:
+                    logger.info("DSPy LM was configured after GeminiService explicit initialization in SpeakerAttitudeService.analyze.")
 
-# speaker_attitude_service = SpeakerAttitudeService() # Commented out global instantiation
+            # Use the DSPy module for analysis
+            assessment = await asyncio.to_thread(self.dspy_analyzer.forward, transcript, session_context)
+            return assessment
+
+        except Exception as e:
+            logger.error(f"Error in SpeakerAttitudeService DSPy call: {e}", exc_info=True)
+            return self._fallback_analysis(transcript, f"DSPy module error: {e}")
+
+    def _fallback_analysis(self, transcript: str, error_message: Optional[str] = None) -> SpeakerAttitude:
+        logger.info(f"Performing fallback speaker attitude analysis for transcript: {transcript[:100]}...")
+        explanation = "Fallback analysis due to error or unconfigured DSPy LM."
+        if error_message:
+            explanation += f" Error: {error_message}"
+
+        return SpeakerAttitude(
+            dominant_attitude="Neutral",
+            attitude_scores={"neutral": 1.0}, # Ensure this matches Pydantic model if it expects Dict[str, float]
+            respect_level="Medium",
+            respect_level_score=0.5,
+            respect_level_score_analysis=explanation,
+            formality_score=0.5,
+            formality_assessment="Mixed",
+            politeness_score=0.5,
+            politeness_assessment="Neutral"
+        )
