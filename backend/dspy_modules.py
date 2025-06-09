@@ -1,5 +1,6 @@
 import dspy
 import json # Ensure json is imported for session_context_str and parsing techniques
+from typing import Any # Import Any for type hinting
 from backend.models import ManipulationAssessment # Assuming this path is correct
 
 # DSPy LM configuration is now handled centrally by GeminiService.
@@ -464,6 +465,68 @@ class DSPyQuantitativeMetricsAnalyzer(dspy.Module):
             sentiment_trend=sentiment,
             word_count=wc,
             vocabulary_richness_score=vocab_score
+        )
+
+from backend.models import SpeakerIntent # Add this
+# json and Any are already imported
+
+class SpeakerIntentSignature(dspy.Signature):
+    """Analyze the transcript to infer the primary and secondary intents of the speaker.
+    Consider the language used, questions asked, statements made, and overall conversational context.
+    Possible intents include: To persuade, To inform, To inquire/seek information, To build rapport,
+    To express emotion, To problem-solve/resolve conflict, To direct/instruct, To entertain.
+    """
+    transcript: str = dspy.InputField(desc="The conversation transcript to analyze.")
+    session_context: str = dspy.InputField(desc="Optional JSON string providing context. Can be empty.")
+
+    inferred_intent: str = dspy.OutputField(desc="The primary inferred intent of the speaker.")
+    confidence_score: float = dspy.OutputField(desc="Confidence in the primary inferred intent (0.0 to 1.0).")
+    key_phrases_supporting_intent: str = dspy.OutputField(desc="JSON string list of key phrases supporting the primary intent.")
+    overall_assessment: str = dspy.OutputField(desc="Brief justification for the inferred primary intent.")
+    secondary_intents: str = dspy.OutputField(desc="JSON string list of any secondary intents detected (e.g., '[\"To build rapport\"]'), or an empty list string '[]'.")
+
+class DSPySpeakerIntentAnalyzer(dspy.Module):
+    def __init__(self):
+        super().__init__()
+        self.predictor = dspy.ChainOfThought(SpeakerIntentSignature)
+
+    def _parse_list_str_field(self, prediction_field_value: Any) -> list[str]: # Re-use or define helper
+        if isinstance(prediction_field_value, list):
+            return [str(item).strip() for item in prediction_field_value if str(item).strip()]
+        if isinstance(prediction_field_value, str) and prediction_field_value.strip():
+            try:
+                parsed_list = json.loads(prediction_field_value)
+                if isinstance(parsed_list, list):
+                    return [str(item).strip() for item in parsed_list if str(item).strip()]
+                return [str(parsed_list).strip()] if str(parsed_list).strip() else []
+            except json.JSONDecodeError:
+                if ',' in prediction_field_value:
+                    return [s.strip() for s in prediction_field_value.split(',') if s.strip()]
+                else: # Treat as lines if no commas
+                    return [s.strip() for s in prediction_field_value.splitlines() if s.strip()]
+        return []
+
+    def forward(self, transcript: str, session_context: dict | None) -> SpeakerIntent:
+        session_context_str = json.dumps(session_context) if session_context else "{}"
+        prediction = self.predictor(transcript=transcript, session_context=session_context_str)
+
+        try:
+            score_raw = getattr(prediction, 'confidence_score', "0.0")
+            score = float(score_raw) if score_raw else 0.0
+
+            key_phrases = self._parse_list_str_field(getattr(prediction, 'key_phrases_supporting_intent', []))
+            secondary_intents_list = self._parse_list_str_field(getattr(prediction, 'secondary_intents', []))
+
+        except (ValueError, TypeError, json.JSONDecodeError) as e:
+            print(f"Error converting SpeakerIntent prediction fields: {e}. Prediction: {prediction}")
+            return SpeakerIntent()
+
+        return SpeakerIntent(
+            inferred_intent=str(getattr(prediction, 'inferred_intent', "Unknown")),
+            confidence_score=score,
+            key_phrases_supporting_intent=key_phrases,
+            overall_assessment=str(getattr(prediction, 'overall_assessment', "Analysis not available.")),
+            secondary_intents=secondary_intents_list
         )
 
 from backend.models import ConversationFlow # Add this

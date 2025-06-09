@@ -1,15 +1,13 @@
 import json
 import asyncio
 import logging
-from typing import Dict, Any, Optional, AsyncGenerator, List # Added List
+from typing import Dict, Any, Optional, AsyncGenerator, List
 from fastapi import WebSocket
 import os
 
-# Import services and models needed for the new pipeline
-from backend.services.gemini_service import GeminiService # For DSPy LM config trigger
-from backend.services.core_dspy_services import dspy_transcribe_audio, dspy_analyze_emotions_audio # New DSPy services
+from backend.services.gemini_service import GeminiService
+from backend.services.core_dspy_services import dspy_transcribe_audio, dspy_analyze_emotions_audio
 from backend.services.audio_service import assess_audio_quality
-# from backend.services.linguistic_service import analyze_linguistic_patterns # Assuming it's called if needed
 
 from backend.services.manipulation_service import ManipulationService
 from backend.services.argument_service import ArgumentService
@@ -19,8 +17,9 @@ from backend.services.psychological_service import PsychologicalService
 from backend.services.audio_analysis_service import AudioAnalysisService as ModularAudioAnalysisService
 from backend.services.quantitative_metrics_service import QuantitativeMetricsService
 from backend.services.conversation_flow_service import ConversationFlowService
-# Import Pydantic models for type hints if returning them directly (though SSE sends dicts)
-from backend.models import AudioQualityMetrics, EmotionDetail
+from backend.services.speaker_intent_service import SpeakerIntentService # Added for Speaker Intent
+
+from backend.models import AudioQualityMetrics, EmotionDetail # SpeakerIntent model not directly used here for typing
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +46,6 @@ class AnalysisStreamer:
                     payload_data = data.dict()
                 else:
                     payload_data = data
-
                 message = {"type": "analysis_update", "analysis_type": analysis_type, "data": payload_data}
                 await self.active_connections[session_id].send_text(json.dumps(message))
                 logger.debug(f"Sent {analysis_type} update to session {session_id}")
@@ -72,7 +70,6 @@ class AnalysisStreamer:
 analysis_streamer = AnalysisStreamer()
 
 async def stream_analysis_pipeline(audio_path: str, session_id: str, session_context: Optional[Dict[str, Any]] = None) -> AsyncGenerator[str, None]:
-    # Initial steps that must complete before text-based analysis can begin
     initial_steps_count = 3 # AudioQuality, Transcription, EmotionAnalysis
 
     if session_context is None: session_context = {}
@@ -83,34 +80,30 @@ async def stream_analysis_pipeline(audio_path: str, session_id: str, session_con
     try:
         GeminiService()
         logger.info("Streaming pipeline: GeminiService instantiated to ensure DSPy LM config.")
+        current_step = 0
 
-        current_step = 0 # For progress updates
-
-        # Define text-based analysis services
         manipulation_service = ManipulationService()
         argument_service = ArgumentService()
         speaker_attitude_service = SpeakerAttitudeService()
         enhanced_understanding_service = EnhancedUnderstandingService()
         psychological_service = PsychologicalService()
-        modular_audio_analysis_service = ModularAudioAnalysisService() # Text-inferred audio features
+        modular_audio_analysis_service = ModularAudioAnalysisService()
         quantitative_metrics_service = QuantitativeMetricsService()
         conversation_flow_service = ConversationFlowService()
-        # linguistic_service = ... # if async
+        speaker_intent_service = SpeakerIntentService() # Instantiate new service
 
-        # Map of text-dependent services
-        text_analysis_map: Dict[str, Any] = {
-            "manipulation_assessment": (manipulation_service.analyze, []), # Args to be filled after transcription
-            "argument_analysis": (argument_service.analyze, []),
-            "speaker_attitude": (speaker_attitude_service.analyze, []),
-            "enhanced_understanding": (enhanced_understanding_service.analyze, []),
-            "psychological_analysis": (psychological_service.analyze, []),
-            "audio_analysis": (modular_audio_analysis_service.analyze, []), # text-inferred
-            "quantitative_metrics": (quantitative_metrics_service.analyze, []),
-            "conversation_flow": (conversation_flow_service.analyze, []),
-            # "linguistic_analysis": (asyncio.to_thread(analyze_linguistic_patterns, transcript_text), []), # If sync
+        text_analysis_map_template: Dict[str, Any] = {
+            "manipulation_assessment": manipulation_service.analyze,
+            "argument_analysis": argument_service.analyze,
+            "speaker_attitude": speaker_attitude_service.analyze,
+            "enhanced_understanding": enhanced_understanding_service.analyze,
+            "psychological_analysis": psychological_service.analyze,
+            "speaker_intent_analysis": speaker_intent_service.analyze, # Added new service
+            "audio_analysis": modular_audio_analysis_service.analyze, # text-inferred audio features
+            "quantitative_metrics": quantitative_metrics_service.analyze,
+            "conversation_flow": conversation_flow_service.analyze,
         }
-        total_steps = initial_steps_count + len(text_analysis_map)
-
+        total_steps = initial_steps_count + len(text_analysis_map_template)
 
         current_step += 1
         yield sse_format({'type': 'progress', 'step': 'Audio Quality Assessment', 'progress': current_step, 'total': total_steps})
@@ -122,7 +115,6 @@ async def stream_analysis_pipeline(audio_path: str, session_id: str, session_con
         except Exception as e:
             logger.error(f"Streaming: Audio quality assessment failed: {e}", exc_info=True)
             yield sse_format({'type': 'error', 'message': f'Audio quality assessment error: {str(e)}'})
-            # audio_quality_data = AudioQualityMetrics() # Default if needed by other parts
 
         current_step += 1
         yield sse_format({'type': 'progress', 'step': 'Transcription', 'progress': current_step, 'total': total_steps})
@@ -144,28 +136,19 @@ async def stream_analysis_pipeline(audio_path: str, session_id: str, session_con
             logger.error(f"Streaming: Emotion analysis error: {e}", exc_info=True)
             yield sse_format({'type': 'error', 'message': f'Emotion analysis error: {str(e)}'})
 
-        # Update args for text-dependent services now that transcript is available
-        text_analysis_map["manipulation_assessment"] = (manipulation_service.analyze, [transcript_text, session_context])
-        text_analysis_map["argument_analysis"] = (argument_service.analyze, [transcript_text, session_context])
-        text_analysis_map["speaker_attitude"] = (speaker_attitude_service.analyze, [transcript_text, session_context])
-        text_analysis_map["enhanced_understanding"] = (enhanced_understanding_service.analyze, [transcript_text, session_context])
-        text_analysis_map["psychological_analysis"] = (psychological_service.analyze, [transcript_text, session_context])
-        text_analysis_map["audio_analysis"] = (modular_audio_analysis_service.analyze, [transcript_text, session_context]) # text-inferred
-        text_analysis_map["quantitative_metrics"] = (quantitative_metrics_service.analyze, [transcript_text,
-                                                                                            session_context.get('speaker_diarization'),
-                                                                                            session_context.get('sentiment_trend_data')])
-        text_analysis_map["conversation_flow"] = (conversation_flow_service.analyze, [transcript_text,
-                                                                                      session_context.get('dialogue_acts'),
-                                                                                      session_context.get('speaker_diarization')])
-        # if "linguistic_analysis" in text_analysis_map: # If it were added
-        #    text_analysis_map["linguistic_analysis"] = (asyncio.to_thread(analyze_linguistic_patterns, transcript_text), [])
-
-
-        for analysis_name, (service_method, args) in text_analysis_map.items():
+        for analysis_name, service_method in text_analysis_map_template.items():
             current_step += 1
             yield sse_format({'type': 'progress', 'step': analysis_name.replace("_", " ").title(), 'progress': current_step, 'total': total_steps})
             try:
-                result_data = await service_method(*args) # All services in map are async now
+                args_for_service: List[Any]
+                if analysis_name == "quantitative_metrics":
+                     args_for_service = [transcript_text, session_context.get('speaker_diarization'), session_context.get('sentiment_trend_data')]
+                elif analysis_name == "conversation_flow":
+                     args_for_service = [transcript_text, session_context.get('dialogue_acts'), session_context.get('speaker_diarization')]
+                else: # Default for most services
+                    args_for_service = [transcript_text, session_context]
+
+                result_data = await service_method(*args_for_service)
                 payload = result_data.model_dump() if hasattr(result_data, 'model_dump') else result_data
                 yield sse_format({'type': 'result', 'analysis_type': analysis_name, 'data': payload})
             except Exception as e:
@@ -184,5 +167,4 @@ async def stream_analysis_pipeline(audio_path: str, session_id: str, session_con
                 logger.info(f"Cleaned up temporary file from streaming pipeline: {audio_path}")
         except Exception as e:
             logger.warning(f"Streaming: Failed to clean up temporary file {audio_path}: {e}")
-
 ```
