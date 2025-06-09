@@ -37,7 +37,7 @@ def assemble_feature_vector_from_data(audio_data: bytes, sample_rate: int, chann
         # Log the exception for better debugging
         # import logging
         # logging.exception("Error assembling feature vector from data")
-        raise RuntimeError(f"Failed to assemble feature vector from data: {e}")
+        raise RuntimeError(f"Failed to assemble feature vector from data: {e}") from e
 
 # Example usage (for dev/test only)
 if __name__ == '__main__':
