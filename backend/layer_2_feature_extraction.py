@@ -9,7 +9,7 @@ import io # Added for BytesIO
 from faster_whisper import WhisperModel
 from parselmouth.praat import call
 
-model_size = "tiny                                                                                                          "
+model_size = "tiny"
 
 # Run on GPU with FP16
 model = WhisperModel(model_size, device="cuda", compute_type="float16")
