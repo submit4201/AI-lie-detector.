@@ -166,15 +166,13 @@ async def stream_analysis_pipeline(audio_path: str, session_id: str, session_con
         # Update total_steps based on actual items in analysis_map
         total_steps = 1 + len(analysis_map) # 1 for initial transcription
 
-        for analysis_name, (service_method, args) in analysis_map.items():
-            current_step += 1
-            yield sse_format({'type': 'progress', 'step': analysis_name.replace("_", " ").title(), 'progress': current_step, 'total': total_steps})
+        async def run_analysis(analysis_name, service_method, args):
             try:
                 if asyncio.iscoroutinefunction(service_method):
                     result_data = await service_method(*args)
-                elif callable(service_method) and not args: # For the lambda wrapped executor calls
-                    result_data = await service_method() 
-                else: # Should not happen with current map, but as a fallback
+                elif callable(service_method) and not args:  # For the lambda wrapped executor calls
+                    result_data = await service_method()
+                else:  # Should not happen with current map, but as a fallback
                     result_data = await loop.run_in_executor(None, service_method, *args)
                 
                 # Pydantic models should be converted to dict for SSE
