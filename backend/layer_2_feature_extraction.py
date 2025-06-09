@@ -11,14 +11,10 @@ from parselmouth.praat import call
 
 model_size = "tiny"
 
-# Run on GPU with FP16
-model = WhisperModel(model_size, device="cuda", compute_type="float16")
-
-# or run on GPU with INT8
-# model = WhisperModel(model_size, device="cuda", compute_type="int8_float16")
-# or run on CPU with INT8
-model = WhisperModel(model_size, device="cpu", compute_type="int8")
-
+# Select WhisperModel configuration
+device = "cuda"  # Change to "cpu" if GPU is unavailable
+compute_type = "float16"  # Options: "float16", "int8_float16", "int8"
+model = WhisperModel(model_size, device=device, compute_type=compute_type)
 segments, info = model.transcribe("audio.mp3", beam_size=5)
 
 print("Detected language '%s' with probability %f" % (info.language, info.language_probability))
