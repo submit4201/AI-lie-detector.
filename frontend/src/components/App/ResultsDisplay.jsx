@@ -4,6 +4,7 @@ import './ResultsDisplay.css'; // Import the CSS file for styling
 import KeyHighlightsSection from './results/KeyHighlightsSection';
 import ComprehensiveAnalysisSection from './results/ComprehensiveAnalysisSection';
 import SessionInsightsSection from './results/SessionInsightsSection';
+import SessionHistorySection from './results/SessionHistorySection';
 import TabbedSecondarySection from './results/TabbedSecondarySection';
 import DataDiagnosticPanel from './results/DataDiagnosticPanel';
 import LoadingSpinner from './results/LoadingSpinner';
@@ -53,8 +54,10 @@ const ResultsDisplay = ({
   sessionId, 
   error,
   isStreaming = false,
-  streamingProgress = null,
-  partialResults = null
+  streamingProgress = 'Processing...',
+  partialResults = null,
+  lastReceivedComponent = null,
+  componentsReceived = []
 }) => {
   console.log('=== ResultsDisplay Debug ===');
   console.log('analysisResults received:', analysisResults);
@@ -84,7 +87,7 @@ const ResultsDisplay = ({
       <div className="results-display-container">
         <LoadingSpinner 
           size="lg" 
-          message={streamingProgress || "Analyzing your audio... This may take a few moments."}
+          message={streamingProgress || "Analyzing your audio..."}
         />
         {isStreaming && (
           <div className="mt-4 bg-blue-500/20 backdrop-blur-sm border border-blue-400/30 rounded-lg p-4">
@@ -100,29 +103,164 @@ const ResultsDisplay = ({
       </div>
     );
   }
+  // Show partial results during streaming OR when streaming is complete
+  if ((isStreaming && partialResults && Object.keys(partialResults).length > 0) || 
+      (!isStreaming && analysisResults)) {
+    
+    // Use partialResults during streaming, analysisResults when complete
+    const currentResults = isStreaming ? partialResults : analysisResults;
+    const hasResults = currentResults && Object.keys(currentResults).length > 0;
+    
+    if (!hasResults) {
+      return (
+        <div className="results-display-container">
+          <div className="results-placeholder bg-gradient-to-br from-purple-600/20 via-blue-600/20 to-indigo-600/20 backdrop-blur-lg border border-white/20 rounded-lg p-8 text-center">
+            <div className="text-6xl mb-4">🎤</div>
+            <h3 className="text-2xl font-semibold text-white mb-4">Ready to Analyze</h3>
+            <p className="text-gray-300 mb-6">Upload an audio file or start recording to begin your AI-powered lie detection analysis.</p>
+          </div>
+        </div>
+      );
+    }
 
-  // Show partial results during streaming
-  if (isStreaming && partialResults && Object.keys(partialResults).length > 0) {
     return (
       <div className="results-display-container">
-        <div className="mb-4 bg-blue-500/20 backdrop-blur-sm border border-blue-400/30 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
-            <span className="text-blue-200 font-medium">Streaming Results (Partial)</span>
+        {/* Streaming Status Header */}
+        {isStreaming && (
+          <div className="mb-4 bg-blue-500/20 backdrop-blur-sm border border-blue-400/30 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
+              <span className="text-blue-200 font-medium">
+                Real-time Analysis • {Object.keys(currentResults).length} components received
+              </span>
+            </div>
+            {streamingProgress && (
+              <p className="text-blue-300 text-sm mt-2">{streamingProgress}</p>
+            )}
           </div>
-          {streamingProgress && (
-            <p className="text-blue-300 text-sm mt-2">{streamingProgress}</p>
-          )}
-        </div>
+        )}
+
+        {/* Completion Status Header */}
+        {!isStreaming && analysisResults && (
+          <div className="mb-4 bg-green-500/20 backdrop-blur-sm border border-green-400/30 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+              <span className="text-green-200 font-medium">Analysis Complete</span>
+            </div>
+          </div>
+        )}
         
         <ErrorBoundary>
-          <div className="results-content">
-            <KeyHighlightsSection analysisResults={partialResults} />
-            {partialResults.comprehensive_analysis && (
-              <ComprehensiveAnalysisSection analysisResults={partialResults} />
+          <div className="results-content space-y-6">
+            {/* Show Key Highlights as soon as any data is available */}
+            {hasResults && (
+              <div className="animate-fadeIn">
+                <KeyHighlightsSection analysisResults={currentResults} />
+              </div>
             )}
-            {partialResults.secondary_analysis && (
-              <TabbedSecondarySection analysisResults={partialResults} />
+
+            {/* Show Individual Analysis Components as They Arrive */}
+              {/* Audio Quality Analysis */}
+            {currentResults.audio_quality && (
+              <div className={`animate-slideInFromLeft bg-gray-800/50 border border-gray-600/30 rounded-lg p-4 streaming-component ${lastReceivedComponent === 'audio_quality' ? 'just-received' : ''}`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                  <h3 className="text-lg font-semibold text-white">Audio Quality Analysis</h3>
+                  {isStreaming && lastReceivedComponent === 'audio_quality' && (
+                    <span className="component-received-badge">• Just received</span>
+                  )}
+                </div>
+                <div className="text-gray-300">
+                  <p>Quality Score: <span className="text-white font-medium">{currentResults.audio_quality.overall_score || 'Processing...'}</span></p>
+                  {currentResults.audio_quality.issues && (
+                    <p className="text-sm mt-1">Issues detected: {currentResults.audio_quality.issues.join(', ')}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Transcript */}
+            {currentResults.transcript && (
+              <div className={`animate-slideInFromLeft bg-gray-800/50 border border-gray-600/30 rounded-lg p-4 streaming-component ${lastReceivedComponent === 'transcript' ? 'just-received' : ''}`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <h3 className="text-lg font-semibold text-white">Transcript</h3>
+                  {isStreaming && lastReceivedComponent === 'transcript' && (
+                    <span className="component-received-badge">• Just received</span>
+                  )}
+                </div>                <div className="text-gray-300 bg-black/20 p-3 rounded border-l-4 border-green-400">
+                  <p>"{currentResults.transcript?.transcript || currentResults.transcript}"</p>
+                </div>
+              </div>
+            )}
+
+            {/* Emotion Analysis */}
+            {currentResults.emotion_analysis && (
+              <div className={`animate-slideInFromLeft bg-gray-800/50 border border-gray-600/30 rounded-lg p-4 streaming-component ${lastReceivedComponent === 'emotion_analysis' ? 'just-received' : ''}`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                  <h3 className="text-lg font-semibold text-white">Emotion Analysis</h3>
+                  {isStreaming && lastReceivedComponent === 'emotion_analysis' && (
+                    <span className="component-received-badge">• Just received</span>
+                  )}
+                </div>
+                <div className="text-gray-300">
+                  {currentResults.emotion_analysis.primary_emotion && (
+                    <p>Primary Emotion: <span className="text-white font-medium">{currentResults.emotion_analysis.primary_emotion}</span></p>
+                  )}
+                  {currentResults.emotion_analysis.confidence && (
+                    <p>Confidence: <span className="text-white font-medium">{Math.round(currentResults.emotion_analysis.confidence * 100)}%</span></p>
+                  )}
+                </div>
+              </div>
+            )}            {/* Linguistic Analysis */}
+            {currentResults.linguistic_analysis && (
+              <div className={`animate-slideInFromLeft bg-gray-800/50 border border-gray-600/30 rounded-lg p-4 streaming-component ${lastReceivedComponent === 'linguistic_analysis' ? 'just-received' : ''}`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                  <h3 className="text-lg font-semibold text-white">Linguistic Analysis</h3>
+                  {isStreaming && lastReceivedComponent === 'linguistic_analysis' && (
+                    <span className="component-received-badge">• Just received</span>
+                  )}
+                </div>
+                <div className="text-gray-300">
+                  {currentResults.linguistic_analysis.deception_indicators && (
+                    <p>Deception Score: <span className="text-white font-medium">{Math.round(currentResults.linguistic_analysis.deception_indicators * 100)}%</span></p>
+                  )}
+                  {currentResults.linguistic_analysis.patterns && (
+                    <p className="text-sm mt-1">Patterns: {currentResults.linguistic_analysis.patterns.join(', ')}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Main Gemini Analysis */}
+            {currentResults.gemini_analysis && (
+              <div className={`animate-slideInFromLeft ${lastReceivedComponent === 'gemini_analysis' ? 'just-received' : ''}`}>
+                <ComprehensiveAnalysisSection analysisResults={currentResults} />
+              </div>
+            )}
+
+            {/* Secondary Analysis (if available) */}
+            {currentResults.secondary_analysis && (
+              <div className={`animate-slideInFromLeft ${lastReceivedComponent === 'secondary_analysis' ? 'just-received' : ''}`}>
+                <TabbedSecondarySection analysisResults={currentResults} />
+              </div>
+            )}
+
+            {/* Session History and Insights (only when not streaming) */}
+            {!isStreaming && analysisResults && (
+              <>
+                <SessionHistorySection 
+                  sessionHistory={sessionHistory}
+                  sessionId={sessionId}
+                  analysisResults={analysisResults}
+                />
+                <SessionInsightsSection 
+                  sessionHistory={sessionHistory}
+                  currentAnalysis={analysisResults}
+                />
+              </>
             )}
           </div>
         </ErrorBoundary>

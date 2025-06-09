@@ -8,6 +8,8 @@ export const useStreamingAnalysis = (sessionId, onAnalysisUpdate) => {
   const [streamingStep, setStreamingStep] = useState('');
   const [streamingError, setStreamingError] = useState(null);
   const [partialResults, setPartialResults] = useState({});
+  const [lastReceivedComponent, setLastReceivedComponent] = useState(null);
+  const [componentsReceived, setComponentsReceived] = useState([]);
   
   const websocketRef = useRef(null);
   const eventSourceRef = useRef(null);
@@ -79,7 +81,6 @@ export const useStreamingAnalysis = (sessionId, onAnalysisUpdate) => {
       websocketRef.current = null;
     }
   }, []);
-
   // Server-Sent Events streaming analysis
   const startStreamingAnalysis = useCallback(async (audioFile) => {
     if (!audioFile || !sessionId) {
@@ -113,7 +114,8 @@ export const useStreamingAnalysis = (sessionId, onAnalysisUpdate) => {
 
       // Read the streaming response
       const reader = response.body.getReader();
-      let finalResult = null;
+      let finalResult = {};  // Initialize as empty object, not null
+      let accumulatedResults = {}; // Local accumulator for results
 
       try {
         while (true) {
@@ -135,22 +137,36 @@ export const useStreamingAnalysis = (sessionId, onAnalysisUpdate) => {
                     setStreamingProgress((data.progress / data.total) * 100);
                     setStreamingStep(data.step || 'Processing...');
                     break;
-                  
-                  case 'result':
+                    case 'result':
+                    // Update both local accumulator and state
+                    accumulatedResults[data.analysis_type] = data.data;
+                    
+                    // Track the most recently received component for UI feedback
+                    setLastReceivedComponent(data.analysis_type);
+                    setComponentsReceived(prev => [...prev, data.analysis_type]);
+                    
                     setPartialResults(prev => ({
                       ...prev,
                       [data.analysis_type]: data.data
                     }));
+                    
+                    // Clear the "just received" indicator after 3 seconds
+                    setTimeout(() => {
+                      setLastReceivedComponent(null);
+                    }, 3000);
+                    
                     if (onAnalysisUpdate) {
                       onAnalysisUpdate(data.analysis_type, data.data);
                     }
                     break;
-                  
-                  case 'complete':
+                    case 'complete':
                     setStreamingProgress(100);
                     setStreamingStep('Analysis Complete');
-                    // Combine all partial results into final result
-                    finalResult = { ...partialResults };
+                    // Use the local accumulator for final result
+                    finalResult = { ...accumulatedResults };
+                    console.log('Streaming complete, final result:', finalResult);
+                    // Set streaming to false immediately when complete
+                    setIsStreaming(false);
                     break;
                   
                   case 'error':
@@ -168,6 +184,7 @@ export const useStreamingAnalysis = (sessionId, onAnalysisUpdate) => {
       }
 
       setIsStreaming(false);
+      console.log('Returning final result:', finalResult);
       return finalResult;
 
     } catch (error) {
@@ -175,8 +192,18 @@ export const useStreamingAnalysis = (sessionId, onAnalysisUpdate) => {
       setStreamingError(error.message || 'Streaming analysis failed');
       setIsStreaming(false);
       return null;
-    }
-  }, [sessionId, onAnalysisUpdate, partialResults]);
+    }  }, [sessionId, onAnalysisUpdate]);
+  // Reset streaming state
+  const resetStreamingState = useCallback(() => {
+    setIsStreaming(false);
+    setStreamingProgress(0);
+    setStreamingStep('');
+    setStreamingError(null);
+    setPartialResults({});
+    setLastReceivedComponent(null);
+    setComponentsReceived([]);
+    disconnectWebSocket();
+  }, [disconnectWebSocket]);
 
   // Connect WebSocket when sessionId changes
   useEffect(() => {
@@ -187,26 +214,26 @@ export const useStreamingAnalysis = (sessionId, onAnalysisUpdate) => {
       disconnectWebSocket();
     };
   }, [sessionId, connectWebSocket, disconnectWebSocket]);
-
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       disconnectWebSocket();
-      const eventSource = eventSourceRef.current;
-      if (eventSource) {
-        eventSource.close();
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
       }
     };
-  }, [disconnectWebSocket]);
-
-  return {
+  }, [disconnectWebSocket]);  return {
     isStreaming,
     streamingProgress,
     streamingStep,
     streamingError,
     partialResults,
+    lastReceivedComponent,
+    componentsReceived,
     startStreamingAnalysis,
     connectWebSocket,
     disconnectWebSocket,
+    resetStreamingState,
   };
 };
