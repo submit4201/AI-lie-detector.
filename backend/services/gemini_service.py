@@ -5,6 +5,8 @@ import base64
 import os
 import asyncio
 from typing import Dict, Any, Optional, List
+import httpx # Added
+import json # Ensure json is imported for JSONDecodeError
 
 from config import GEMINI_API_KEY
 from .json_utils import parse_gemini_response, safe_json_parse, create_fallback_response, extract_text_from_gemini_response
@@ -28,13 +30,82 @@ logger = logging.getLogger(__name__)
 
 # Define GeminiService class
 class GeminiService:
-    async def query_gemini_for_raw_json(self, prompt: str) -> Optional[Dict[str, Any]]:
-        logger.info(f"GeminiService.query_gemini_for_raw_json called (prompt snippet): {prompt[:100]}...")
-        # This is a placeholder. A real implementation would make an async HTTP call
-        # to Gemini API and parse the JSON response.
-        # For now, returning None to trigger fallback mechanisms in services.
-        logger.warning("GeminiService.query_gemini_for_raw_json: Placeholder returning None. Implement actual API call.")
-        return None
+    async def query_gemini_for_raw_json(self, prompt: str, max_output_tokens: int = 2048) -> Optional[Dict[str, Any]]:
+        logger.info(f"GeminiService.query_gemini_for_raw_json sending prompt (first 100 chars): {prompt[:100]}...")
+        if not GEMINI_API_KEY:
+            logger.error("GEMINI_API_KEY not configured.")
+            return None
+
+        gemini_api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+        
+        headers = {"Content-Type": "application/json"}
+        
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "temperature": 0.5, 
+                "topP": 0.95,
+                "topK": 40,
+                "maxOutputTokens": max_output_tokens,
+                "response_mime_type": "application/json", 
+            },
+            "safetySettings": [
+                {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+            ]
+        }
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(gemini_api_url, json=payload, headers=headers, timeout=120.0) 
+
+            if response.status_code == 200:
+                response_data = response.json()
+                
+                extracted_text = extract_text_from_gemini_response(response_data)
+                if extracted_text:
+                    parsed_json = safe_json_parse(extracted_text)
+                    if isinstance(parsed_json, dict) and not parsed_json.get("error"):
+                        logger.info("Successfully received and parsed JSON response from Gemini.")
+                        return parsed_json
+                    else:
+                        logger.error(f"Failed to parse JSON from Gemini response or parsed data is an error. Parsed: {parsed_json}. Raw text: {extracted_text[:200]}")
+                        return None 
+                elif (response_data.get('candidates') and
+                      response_data['candidates'][0].get('content') and
+                      response_data['candidates'][0]['content'].get('parts') and
+                      isinstance(response_data['candidates'][0]['content']['parts'][0], dict) and
+                      "text" not in response_data['candidates'][0]['content']['parts'][0]):
+                    
+                    potential_json_obj = response_data['candidates'][0]['content']['parts'][0]
+                    if isinstance(potential_json_obj, dict):
+                         logger.info("Successfully received direct JSON object from Gemini.")
+                         return potential_json_obj
+                    else:
+                        logger.error(f"Gemini response part was not a dict as expected for direct JSON. Part: {str(potential_json_obj)[:200]}")
+                        return None
+                else:
+                    logger.error(f"Could not extract text or direct JSON from Gemini response. Full response: {str(response_data)[:500]}")
+                    return None
+
+            else:
+                logger.error(f"Gemini API request failed with status code {response.status_code}: {response.text}")
+                return None
+
+        except httpx.ReadTimeout:
+            logger.error("Gemini API request timed out.")
+            return None
+        except httpx.RequestError as e:
+            logger.error(f"An error occurred while requesting Gemini API: {e}")
+            return None
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to decode JSON from Gemini response: {e}. Response text: {response.text[:200] if 'response' in locals() else 'N/A'}")
+            return None
+        except Exception as e:
+            logger.error(f"An unexpected error occurred in query_gemini_for_raw_json: {e}", exc_info=True)
+            return None
 
 def query_gemini_with_audio(audio_path: str, transcript: str, flags: Dict[str, Any], session_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
@@ -325,7 +396,8 @@ def query_gemini(transcript: str, flags: Dict[str, Any], session_context: Option
             "sarcasm_detected": false,
             "sarcasm_confidence_score": 0,
             "tone_indicators_respect_sarcasm": ["words/phrases indicating respect/sarcasm"]
-        },        "enhanced_understanding": {
+        },
+        "enhanced_understanding": {
             "key_inconsistencies": ["list of contradictions"],
             "areas_of_evasiveness": ["topics speaker avoided"],
             "suggested_follow_up_questions": ["questions to ask for clarity"],

@@ -8,14 +8,25 @@ from backend.services.gemini_service import GeminiService
 logger = logging.getLogger(__name__)
 
 class SpeakerAttitudeService:
-    def __init__(self, gemini_service: GeminiService):
-        self.gemini_service = gemini_service
+    def __init__(self, gemini_service: Optional[GeminiService] = None):
+        self.gemini_service = gemini_service if gemini_service else GeminiService()
 
     def _fallback_analysis(self, transcript_snippet: str) -> SpeakerAttitude:
         logger.warning(f"SpeakerAttitudeService: LLM call failed or returned malformed data for transcript snippet: {transcript_snippet}. Falling back to default.")
-        return SpeakerAttitude() # Relies on default_factory or default values in Pydantic model
+        # Ensure fallback returns all fields expected by SpeakerAttitude, using defaults
+        return SpeakerAttitude(
+            dominant_attitude="Neutral",
+            attitude_scores={},
+            respect_level="Neutral",
+            respect_level_score=0.0,
+            respect_level_score_analysis="Fallback: Analysis not available.",
+            formality_score=0.0,
+            formality_assessment="Fallback: Analysis not available.",
+            politeness_score=0.0,
+            politeness_assessment="Fallback: Analysis not available."
+        )
 
-    async def analyze(self, transcript: str, session_context: Dict[str, Any] = None) -> SpeakerAttitude:
+    async def analyze(self, transcript: str, session_context: Optional[Dict[str, Any]] = None) -> SpeakerAttitude:
         """
         Performs speaker attitude analysis on the given transcript using an LLM.
         """
@@ -27,38 +38,59 @@ Analyze the speaker's attitude in the following transcript.
 Transcript:
 "{transcript}"
 
-Based on the transcript, provide a JSON object with the following fields:
-- "respect_level_score": An integer score from 0 to 100 indicating the level of respect shown by the speaker.
-- "sarcasm_detected": A boolean indicating if sarcasm is detected.
-- "sarcasm_confidence_score": A float score from 0.0 to 1.0 indicating the confidence in sarcasm detection.
-- "tone_indicators_respect_sarcasm": A list of strings, where each string is a textual cue or indicator from the transcript supporting the respect and sarcasm assessment.
-- "attitude_summary": A brief textual summary of the overall speaker attitude.
-- "emotional_tone": A string describing the primary emotional tone (e.g., "neutral", "angry", "joyful", "anxious", "frustrated").
-- "confidence_level_speech": A string describing the speaker's confidence level (e.g., "confident", "hesitant", "assertive", "timid").
-- "engagement_level": A string describing the speaker's engagement level (e.g., "engaged", "disinterested", "bored", "attentive").
+Session Context (if available, use for nuanced understanding):
+{json.dumps(session_context) if session_context else "No additional session context provided."}
 
-Return ONLY the JSON object.
-Example:
+Based on the transcript and context, provide your analysis as a JSON object matching the SpeakerAttitude model fields below:
+1.  dominant_attitude (str): Describe the dominant attitude of the speaker (e.g., "Cooperative", "Hostile", "Dismissive", "Supportive", "Neutral", "Anxious").
+2.  attitude_scores (Dict[str, float]): Provide scores (0.0 to 1.0) for various relevant attitudes you can infer. Examples: {{"polite": 0.8, "impatient": 0.6, "friendly": 0.7}}.
+3.  respect_level (str): Assess the qualitative level of respect shown by the speaker (e.g., "Respectful", "Disrespectful", "Neutral", "Condescending").
+4.  respect_level_score (float, 0.0 to 1.0): A numerical score for the assessed respect level. 0.0 means very disrespectful, 1.0 means very respectful.
+5.  respect_level_score_analysis (str): Provide a detailed analysis and reasoning for the 'respect_level_score'. Explain which cues (verbal, tonal if inferable from text) led to this score. Cite examples.
+6.  formality_score (float, 0.0 to 1.0): Assess the formality of the speaker's language. 0.0 is very informal, 1.0 is very formal.
+7.  formality_assessment (str): Provide a qualitative assessment of the speaker's formality. Explain your reasoning, citing examples of word choice, phrasing, or sentence structure.
+8.  politeness_score (float, 0.0 to 1.0): Assess the politeness level of the speaker. 0.0 is very impolite, 1.0 is very polite.
+9.  politeness_assessment (str): Provide a qualitative assessment of the speaker's politeness. Explain your reasoning, citing examples of polite/impolite markers, requests, or responses.
+
+JSON structure to be returned:
 {{
-  "respect_level_score": 75,
-  "sarcasm_detected": false,
-  "sarcasm_confidence_score": 0.1,
-  "tone_indicators_respect_sarcasm": ["Used polite phrases like 'please'", "Maintained a calm tone"],
-  "attitude_summary": "The speaker was generally respectful and engaged, with no clear signs of sarcasm.",
-  "emotional_tone": "neutral",
-  "confidence_level_speech": "confident",
-  "engagement_level": "engaged"
+  "dominant_attitude": "...",
+  "attitude_scores": {{"attitude1": score1, "attitude2": score2}},
+  "respect_level": "...",
+  "respect_level_score": float,
+  "respect_level_score_analysis": "...",
+  "formality_score": float,
+  "formality_assessment": "...",
+  "politeness_score": float,
+  "politeness_assessment": "..."
 }}
+If a field cannot be determined or is not applicable, use a sensible default (e.g., "Neutral" for strings, 0.0 for floats, empty dict for scores, or "Analysis not available." for detailed analysis strings).
+Focus your analysis solely on the provided transcript and session context.
 """
         try:
-            raw_response = await self.gemini_service.query_gemini_for_raw_json(prompt)
-            if raw_response:
-                return SpeakerAttitude(**raw_response)
+            raw_analysis = await self.gemini_service.query_gemini_for_raw_json(prompt)
+            if raw_analysis:
+                data = json.loads(raw_analysis)
+                # Ensure all fields from the model are present, with defaults if missing
+                return SpeakerAttitude(
+                    dominant_attitude=data.get("dominant_attitude", "Neutral"),
+                    attitude_scores=data.get("attitude_scores", {}),
+                    respect_level=data.get("respect_level", "Neutral"),
+                    respect_level_score=data.get("respect_level_score", 0.0),
+                    respect_level_score_analysis=data.get("respect_level_score_analysis", "Analysis not available."),
+                    formality_score=data.get("formality_score", 0.0),
+                    formality_assessment=data.get("formality_assessment", "Analysis not available."),
+                    politeness_score=data.get("politeness_score", 0.0),
+                    politeness_assessment=data.get("politeness_assessment", "Analysis not available.")
+                )
             else:
                 logger.warning(f"SpeakerAttitudeService: Received no response from LLM for transcript snippet: {transcript_snippet}.")
                 return self._fallback_analysis(transcript_snippet)
-        except (json.JSONDecodeError, TypeError, Exception) as e:
+        except (json.JSONDecodeError, TypeError) as e: # Keep Exception for broader unexpected issues
             logger.error(f"SpeakerAttitudeService: Error processing LLM response for transcript snippet: {transcript_snippet}. Error: {e}")
+            return self._fallback_analysis(transcript_snippet)
+        except Exception as e:
+            logger.error(f"SpeakerAttitudeService: Unexpected error during analysis for transcript snippet: {transcript_snippet}. Error: {e}")
             return self._fallback_analysis(transcript_snippet)
 
 # speaker_attitude_service = SpeakerAttitudeService() # Commented out global instantiation

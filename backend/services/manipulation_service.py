@@ -19,15 +19,18 @@ class ManipulationService:
 Transcript:
 "{transcript}"
 
-Consider the following aspects and provide your analysis as a JSON object matching the ManipulationAssessment model:
-1.  is_manipulative (bool): Overall assessment of whether manipulation is present.
-2.  manipulation_score (float, 0.0 to 1.0): Likelihood of manipulation.
-3.  manipulation_techniques (List[str]): Specific techniques identified (e.g., "Gaslighting", "Guilt-tripping", "Love bombing", "Appeal to pity", "Intimidation", "Minimization").
-4.  manipulation_confidence (float, 0.0 to 1.0): Confidence in this assessment.
-5.  manipulation_explanation (str): Brief explanation of why the assessment was made, citing examples from the text if possible.
-6.  manipulation_score_analysis (str): Detailed analysis of the manipulation score.
+Session Context (if available, use for nuanced understanding):
+{json.dumps(session_context) if session_context else "No additional session context provided."}
 
-JSON structure:
+Consider the following aspects and provide your analysis as a JSON object matching the ManipulationAssessment model:
+1.  is_manipulative (bool): Overall assessment of whether manipulation is present in the provided transcript.
+2.  manipulation_score (float, 0.0 to 1.0): A score indicating the likelihood and intensity of manipulation. 0.0 means no manipulation, 1.0 means strong and clear manipulation.
+3.  manipulation_techniques (List[str]): Identify specific manipulation techniques observed (e.g., "Gaslighting", "Guilt-tripping", "Love bombing", "Appeal to pity", "Intimidation", "Minimization", "Threatening", "Flattery", "Playing the victim").
+4.  manipulation_confidence (float, 0.0 to 1.0): Your confidence in this overall manipulation assessment (is_manipulative, score, techniques).
+5.  manipulation_explanation (str): A concise explanation for your overall assessment (is_manipulative). Cite specific examples or phrases from the transcript that support your findings for the identified techniques.
+6.  manipulation_score_analysis (str): Provide a detailed analysis and reasoning behind the specific 'manipulation_score' you assigned. Explain how the presence, absence, or combination of techniques and their perceived intensity in the transcript led to this score. For example, if the score is 0.7, explain what factors make it high but not 1.0.
+
+JSON structure to be returned:
 {{
   "is_manipulative": bool,
   "manipulation_score": float,
@@ -36,7 +39,8 @@ JSON structure:
   "manipulation_explanation": "...",
   "manipulation_score_analysis": "..."
 }}
-If a field cannot be determined, use a sensible default (e.g., false, 0.0, empty list, "Analysis not available").
+If a field cannot be determined or is not applicable, use a sensible default (e.g., false for boolean, 0.0 for float, empty list for lists, or "Analysis not available." for strings).
+Focus your analysis solely on the provided transcript and session context.
 """
 
         try:

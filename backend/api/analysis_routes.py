@@ -48,6 +48,7 @@ async def stream_analyze_audio(
     session_id_form: Optional[str] = Form(None, alias="session_id")
 ):
     """Stream analysis results as they complete"""
+    temp_audio_path = None # Initialize to ensure it's defined in finally block
     try:
         # Resolve session_id
         current_session_id = conversation_history_service.get_or_create_session(session_id_form)
@@ -70,9 +71,12 @@ async def stream_analyze_audio(
             temp_file.write(content)
             temp_audio_path = temp_file.name
         
+        # Get session context for the streaming pipeline
+        session_context_data = conversation_history_service.get_session_context(current_session_id)
+
         # Return streaming response
         return StreamingResponse(
-            stream_analysis_pipeline(temp_audio_path, current_session_id),
+            stream_analysis_pipeline(temp_audio_path, current_session_id, session_context_data),
             media_type="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",
@@ -85,7 +89,7 @@ async def stream_analyze_audio(
     except Exception as e:
         logger.error(f"Error in streaming analysis: {e}")
         # Clean up temp file on error
-        if 'temp_audio_path' in locals() and os.path.exists(temp_audio_path):
+        if temp_audio_path and os.path.exists(temp_audio_path):
             try:
                 os.unlink(temp_audio_path)
             except Exception as unlink_e:
