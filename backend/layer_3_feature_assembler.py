@@ -1,9 +1,9 @@
 # layer3_feature_vector_assembler.py
 
-from typing import Dict, List, Any
+from typing import Dict, Any
 import os
 import uuid
-from .layer_2_feature_extraction import extract_features, extract_features_from_data # Added import
+from .layer_2_feature_extraction import extract_features_from_data
 
 def assemble_feature_vector(audio_path: str) -> Dict[str, Any]:
     """
@@ -14,12 +14,13 @@ def assemble_feature_vector(audio_path: str) -> Dict[str, Any]:
         raise FileNotFoundError(f"Audio file not found: {audio_path}")
 
     try:
-        feature_vector = extract_features(audio_path)
+        print(f"Warning: assemble_feature_vector called with path {audio_path}, but layer_2.extract_features(path) is not defined. Returning dummy data.")
+        feature_vector = {"error": "extract_features(path) not implemented in L2", "path": audio_path}
         feature_vector['audio_id'] = str(uuid.uuid4())  # add unique identifier
         return feature_vector
 
     except Exception as e:
-        raise RuntimeError(f"Failed to assemble feature vector: {e}")
+        raise RuntimeError(f"Failed to assemble feature vector for path {audio_path}: {e}")
 
 def assemble_feature_vector_from_data(audio_data: bytes, sample_rate: int, channels: int) -> Dict[str, Any]:
     """
@@ -41,7 +42,9 @@ def assemble_feature_vector_from_data(audio_data: bytes, sample_rate: int, chann
 
 # Example usage (for dev/test only)
 if __name__ == '__main__':
+    # Test the problematic function to see the warning
     path = "path_to_some_audio.wav"
+    print(f"\nTesting assemble_feature_vector with dummy path {path}...")
     vector = assemble_feature_vector(path)
     for key, value in vector.items():
         print(f"{key}: {value}")

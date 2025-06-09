@@ -4,7 +4,7 @@ import asyncio
 import json
 import websockets
 from typing import Dict, Tuple
-from layer3_feature_vector import assemble_feature_vector  # Your layer 3 output
+from .layer_3_feature_assembler import assemble_feature_vector  # Your layer 3 output
 
 ################################################################################
 # CONFIGURATION
