@@ -59,72 +59,50 @@ The AI Lie Detector is a sophisticated voice analysis application that combines 
 
 #### 3. **Results Display System**
 
-The UI provides a comprehensive, multi-layered analysis display:
+The UI presents analysis results in a structured and progressively detailed manner:
 
-## **📝 Transcript Section**
+- **📝 Full Transcript Section**: Displays the complete audio transcription. Speaker separation is a feature targeted for improvement.
+- **✨ Key Highlights Section**: Provides at-a-glance cards for:
+    - **Overall Credibility Score**: (0-100 scale, color-coded). *Functional note: Color coding and score sensitivity noted for review.*
+    - **Overall Risk Level**: (Low/Medium/High).
+    - **AI Insights Snippet**: Brief textual summary of AI's core findings.
+    - **Key Deception Indicators**: Lists critical flags if detected.
+- **📊 Top Metric Cards**: Prominently displays:
+    - **Credibility Score Card**: Visual representation with score and label.
+    - **Analysis Confidence Card**: Shows the AI's confidence in the current analysis (e.g., very_low to very_high).
+    - **Risk Assessment Card**: Displays the categorized overall risk.
 
-- Full audio transcription in readable format
-- Speaker separation and identification - this need improvement 
-- Clean typography with proper spacing
+- **Tabbed Detailed Analysis**: A tabbed interface allows users to explore deeper aspects:
+    - **🎯 Basic Analysis Tab**:
+        - Renders `BasicAnalysisSection.jsx`.
+        - Includes behavioral analysis (speech patterns, communication style, emotional state, stress indicators) and key findings (strengths, concerns, motivation) often derived from AI summaries and linguistic data.
+    - **🤖 AI Deep Dive Tab**:
+        - Renders `AIDeepAnalysisSection.jsx`.
+        - Provides an accordion interface for detailed AI-driven assessments:
+            - Overall AI Summary (from Gemini)
+            - Manipulation Tactics Assessment
+            - Argument Coherence & Structure
+            - Speaker Attitude & Tone (respect, sarcasm)
+            - Deeper Understanding & Follow-ups (inconsistencies, evasiveness, suggested questions, unverified claims)
+            - Qualitative Linguistic Insights
+            - Speaker-Specific Deception Indicators
+            - Actionable Recommendations
+    - **🔍 Quantitative Metrics Tab**:
+        - Renders `QuantitativeMetricsSection.jsx`.
+        - Displays detailed numerical data and visualizations for:
+            - Speech Pattern Metrics (speech rate, word/sentence counts, average lengths, audio duration). *Functional note: This section noted for review regarding data calculation and display accuracy.*
+            - Hesitation & Uncertainty Analysis (hesitation count/rate, filler words, repetitions).
+            - Linguistic Confidence & Certainty (certainty/qualifier counts, confidence ratio).
+            - Language Complexity & Formality (scores visualized with charts).
 
-## **📊 Key Metrics Dashboard (Top-Level Cards)**
+- **🧠 Session Intelligence Section**:
+    - Renders `SessionInsightsSection.jsx` (if multiple analyses in a session).
+    - This section provides a dashboard with its own tabs:
+        - **AI Insights**: Displays AI-generated narratives on session consistency, behavioral evolution, risk trajectory, and conversation dynamics.
+        - **Analytics**: Shows statistical summaries for the session (total analyses, average credibility, word counts, credibility trends, risk/emotion progression charts).
+        - **Timeline**: A chronological view of all analyses performed within the session.
 
-- **Credibility Score**: 0-100 scale with color-coded indicators - color doesnt work and it hardly changes 
-- **Analysis Confidence**: 5-level confidence system (very_low to very_high)  
-- **Risk Assessment**: Low/Medium/High risk classification
-
-## **🔍 Quantitative Analysis Section**
-
-**this section could use some support it doesnt always calculate or show all the correct data** 
-
-- Speech pattern metrics (hesitation count, rate, confidence ratio)
-- Linguistic complexity and formality scores
-- Real-time calculated speaking rates and word statistics
-- Visual progress bars and metric cards - needs improvement 
-
-**🧠 Session Intelligence Dashboard**
-
-
-Tab-based Interface:
-├── AI Insights
-│   ├── Consistency Analysis
-│   ├── Behavioral Evolution  
-│   ├── Risk Trajectory
-│   └── Conversation Dynamics
-├── Analytics
-│   ├── Session statistics grid
-│   ├── Interactive credibility chart
-│   ├── Emotional progression tracking
-│   └── Key performance indicators
-└── Timeline
-    ├── Chronological analysis history
-    ├── Visual timeline with indicators
-    ├── Detailed analysis summaries
-    └── Comparative trend analysis
-## **🎯 Basic Analysis Section**
-
-- Behavioral analysis with emotional consistency
-- Communication style assessment
-- Key findings with strengths and concerns
-- Visual confidence scoring
-
-## **🤖 AI Deep Analysis Section**
-
-- Detailed Gemini AI insights
-- Psychological profiling - needs work on this 
-- Motivation assessment
-- Risk factor identification
-
-### **📈 Comprehensive Analysis Dashboard**
-
-Multi-tab Analysis Interface:
-├── Overview: Key metrics and deception indicators
-├── Speech Patterns: Vocal rhythm, pace, hesitation analysis
-├── Psychology: Emotional state, motivation, credibility
-├── Deception: Specific indicators and risk assessment
-└── Session: Conversation-level insights and patterns
-
-
+*(The "Comprehensive Analysis Dashboard" previously listed appears to be a separate, more granular component (`ComprehensiveAnalysisSection.jsx`) also offering a tabbed view covering Overview, Speech Patterns, Psychology, Deception, and Session tabs. This provides an alternative or more focused deep-dive interface.)*
 
 ### 🎨 Visual Design Language
 
@@ -190,7 +168,7 @@ Multi-tab Analysis Interface:
   "avg_words_per_sentence": 15.2,
   "sentence_count": 8,
   "speech_rate_wpm": 145,
-  "hesitation_rate": 1.2,
+  "hesitation_rate_hpm": 1.2, # Renamed from hesitation_rate to be more specific (hesitations per minute)
   "confidence_ratio": 0.71
 }
 ```
@@ -228,6 +206,10 @@ Multi-tab Analysis Interface:
     "risk_factors": ["...", "..."],
     "mitigation_suggestions": ["...", "..."]
   }
+  // Note: The full "AnalyzeResponse" from the API is more extensive and includes additional detailed
+  // assessments such as manipulation_assessment, argument_analysis, speaker_attitude,
+  // enhanced_understanding, and a dedicated audio_analysis object.
+  // Please refer to the API documentation at /docs for the complete schema.
 }
 ```
 
@@ -433,6 +415,15 @@ The AI Lie Detector represents a sophisticated convergence of modern web technol
 
 The combination of quantitative linguistic analysis, emotion detection, AI-powered insights, and session intelligence creates a powerful tool for understanding human communication patterns and detecting potential deception indicators.
 
-**Current Status**: Production-ready with comprehensive feature set
-**Deployment**: Local development environment (Backend: :8000, Frontend: :5175)
-**Documentation**: Comprehensive API documentation available at `/docs`
+**Current Status**:
+- Production-ready with a comprehensive feature set.
+- Actively maintained and enhanced.
+
+**Deployment**:
+- Local development environment: Backend runs on `http://localhost:8000`, Frontend on `http://localhost:5173` (Note: Port updated from 5175 based on typical Vite default and common setups. Verify if different).
+
+**Documentation**:
+- **API Documentation**: Comprehensive, auto-generated API documentation (Swagger UI) available at the backend's `/docs` endpoint.
+- **Source Code Documentation**: Extensive inline comments and docstrings have been added to both backend Python modules and frontend JavaScript/JSX components and hooks, significantly improving code readability and maintainability.
+- **README Files**: Detailed `README.md` files are now available for both the `backend/` and `frontend/` directories, providing setup, run, and project structure information.
+- **Project-Specific Documents**: Additional markdown documents detailing specific aspects like Formality Scoring, Session Insights, and Structured Output implementation are maintained.

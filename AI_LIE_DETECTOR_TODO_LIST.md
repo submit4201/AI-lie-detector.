@@ -193,13 +193,14 @@
   - **Estimated Time**: 1-2 weeks
 
 ### **P7.2 - Documentation & API**
-- [ ] **Enhanced documentation and API improvements**
-  - Complete API documentation with examples
-  - Add code documentation and inline comments
-  - Create user guide and troubleshooting documentation
-  - Implement API versioning and backwards compatibility
-  - **Files**: Documentation files, API route enhancements
-  - **Estimated Time**: 3-5 days
+- [ ] **Enhanced documentation and API improvements** - 🚧 **Partially Completed**
+  - [x] Comprehensive API documentation via Swagger UI (available at backend `/docs`). *Further examples might be added.*
+  - [x] Extensive code documentation: Added detailed inline comments and JSDoc/Python docstrings to all specified backend Python modules and frontend JavaScript/JSX components & hooks.
+  - [x] Project READMEs: Created `README.md` for both `backend/` and `frontend/` directories detailing setup, structure, and usage.
+  - [ ] Create user guide and troubleshooting documentation.
+  - [ ] Implement API versioning and backwards compatibility.
+  - **Files**: Documentation files (READMEs, this TODO list, project overview, etc.), API route enhancements, all source code files.
+  - **Estimated Time**: 3-5 days (Overall task)
 
 ---
 

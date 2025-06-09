@@ -77,7 +77,7 @@ npm run dev
 ```
 
 - **Backend**: http://localhost:8000
-- **Frontend**: http://localhost:5175
+- **Frontend**: http://localhost:5173
 - **API Documentation**: http://localhost:8000/docs
 
 ## 📋 API Endpoints
@@ -123,6 +123,10 @@ Every analysis now returns a guaranteed structure:
     "mitigation_suggestions": ["...", "..."]
   },
   "session_insights": { ... }
+  // Note: The full AnalyzeResponse schema includes additional detailed analysis fields
+  // such as audio_analysis, manipulation_assessment, argument_analysis,
+  // speaker_attitude, and enhanced_understanding.
+  // Please refer to the API documentation at /docs for the complete schema.
 }
 ```
 
