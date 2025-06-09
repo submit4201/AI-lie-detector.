@@ -1,10 +1,11 @@
-import speech_recognition as sr
+import base64
+import os
 from pydub import AudioSegment
 from typing import List, Dict, Any
 import logging
 
-# Assuming EMOTION_CLASSIFIER is initialized in config.py and imported
-from config import EMOTION_CLASSIFIER
+# Remove speech recognition dependency and use Gemini directly
+# from services.gemini_service import transcribe_and_analyze_with_gemini  # Remove unused import
 
 logger = logging.getLogger(__name__)
 
@@ -30,49 +31,103 @@ def assess_audio_quality(audio_segment: AudioSegment) -> Dict[str, Any]:
 
     return quality_metrics
 
-def transcribe_audio(wav_audio_path: str) -> str:
-    """
-    Transcribes audio from a WAV file.
-    Raises sr.UnknownValueError if audio is unintelligible.
-    Raises sr.RequestError for speech recognition service issues.
-    """
-    recognizer = sr.Recognizer()
-    with sr.AudioFile(wav_audio_path) as source:
-        audio_data = recognizer.record(source)
-        try:
-            transcript = recognizer.recognize_google(audio_data)
-            logger.info(f"Transcript generated: \"{transcript[:100]}...\"")
-            return transcript
-        except sr.UnknownValueError as e:
-            logger.warning(f"Speech recognition: Could not understand audio from file {wav_audio_path}.")
-            raise  # Re-raise to be handled by the caller
-        except sr.RequestError as e:
-            logger.error(f"Speech recognition service error for file {wav_audio_path}: {e}")
-            raise  # Re-raise to be handled by the caller
+# other audio processing functions can be added here
 
-def analyze_emotion(text: str) -> List[Dict[str, Any]]:
-    """
-    Analyzes emotion from text using the preloaded classifier.
-    Returns a list of emotion scores or a default if analysis fails.
-    """
-    if not EMOTION_CLASSIFIER:
-        logger.warning("Emotion classifier not available. Returning default emotion.")
-        return [{"label": "neutral", "score": 0.5, "error": "Classifier not available"}]
+def convert_audio_to_wav(audio_path: str) -> str:
+    """Convert audio to WAV format for consistency"""
+    audio_segment = AudioSegment.from_file(audio_path)
+    wav_path = audio_path.replace('.wav', '_converted.wav')
+    audio_segment.export(wav_path, format="wav")
+    return wav_path
 
+# transcribe_audio, analyze_emotion, and analyze_emotion_with_gemini are removed
+# as they are now handled directly by Gemini so their in the gemini_service.py
+
+async def streaming_audio_analysis_pipeline(audio_path: str, session_id: str = None) -> Dict[str, Any]:
+    """
+    Audio-first streaming analysis pipeline that sends results as they complete.
+    Always uses Gemini with audio data for comprehensive analysis.
+    """
     try:
-        emotions_output = EMOTION_CLASSIFIER(text)
-        # The pipeline with return_all_scores=True and top_k typically returns a list containing a list of dicts:
-        # [[{'label': 'sadness', 'score': 0.9...}, {'label': 'joy', 'score': 0.0...}, ...]]
-        if isinstance(emotions_output, list) and len(emotions_output) > 0 and isinstance(emotions_output[0], list):
-            # This is the expected structure when top_k is used (even if top_k covers all labels)
-            return emotions_output[0]
-        elif isinstance(emotions_output, list) and len(emotions_output) > 0 and isinstance(emotions_output[0], dict):
-             # This might happen if top_k=1 or not specified and model returns single list of dicts
-            return emotions_output
-        else:
-            logger.warning(f"Unexpected emotion classifier output structure: {type(emotions_output)}. Using default.")
-            return [{"label": "neutral", "score": 0.5, "error": "Unexpected output structure"}]
-
+        from .streaming_service import analysis_streamer
+        from services.gemini_service import transcribe_with_gemini, query_gemini_with_audio, analyze_emotions_with_gemini
+        from services.linguistic_service import linguistic_analysis_pipeline
+        
+        # Convert audio to WAV for consistency
+        wav_path = convert_audio_to_wav(audio_path)
+        
+        # Assess audio quality first
+        audio_segment = AudioSegment.from_file(wav_path)
+        audio_quality = assess_audio_quality(audio_segment)
+        
+        if session_id:
+            await analysis_streamer.send_analysis_update(session_id, "audio_quality", audio_quality)
+            await analysis_streamer.send_progress_update(session_id, "Audio Quality Assessment", 1, 5)
+        
+        # Step 1: Transcription with Gemini (audio-based)
+        logger.info("Starting audio transcription with Gemini")
+        transcript = transcribe_with_gemini(wav_path)
+        logger.info(f"Transcription completed: {transcript[:100]}...")
+        
+        if session_id:
+            await analysis_streamer.send_analysis_update(session_id, "transcript", {"transcript": transcript})
+            await analysis_streamer.send_progress_update(session_id, "Audio Transcription", 2, 5)
+        
+        # Step 2: Comprehensive Gemini audio analysis
+        logger.info("Starting comprehensive Gemini audio analysis")
+        gemini_result = query_gemini_with_audio(wav_path, transcript, {}, None)
+        logger.info("Gemini audio analysis completed")
+        
+        if session_id:
+            await analysis_streamer.send_analysis_update(session_id, "gemini_analysis", gemini_result)
+            await analysis_streamer.send_progress_update(session_id, "Gemini Audio Analysis", 3, 5)
+        
+        # Step 3: Emotion analysis with audio
+        logger.info("Starting emotion analysis with audio")
+        emotions = analyze_emotions_with_gemini(wav_path, transcript)
+        logger.info(f"Emotion analysis completed: {len(emotions)} emotions detected")
+        
+        if session_id:
+            await analysis_streamer.send_analysis_update(session_id, "emotion_analysis", emotions)
+            await analysis_streamer.send_progress_update(session_id, "Emotion Analysis", 4, 5)
+        
+        # Step 4: Linguistic analysis (based on transcript)
+        logger.info("Starting linguistic analysis")
+        linguistic_analysis = linguistic_analysis_pipeline(transcript, audio_quality.get('duration', 30.0))
+        logger.info("Linguistic analysis completed")
+        
+        if session_id:
+            await analysis_streamer.send_analysis_update(session_id, "linguistic_analysis", linguistic_analysis)
+            await analysis_streamer.send_progress_update(session_id, "Linguistic Analysis", 5, 5)
+        
+        # Combine all results
+        final_result = {
+            "transcript": transcript,
+            "audio_quality": audio_quality,
+            "emotion_analysis": emotions,
+            "linguistic_analysis": linguistic_analysis,
+            **gemini_result  # Include all Gemini analysis results
+        }
+        
+        logger.info("Audio analysis pipeline completed successfully")
+        return final_result
+        
     except Exception as e:
-        logger.warning(f"Emotion analysis failed: {e}")
-        return [{"label": "neutral", "score": 0.5, "error": str(e)}]
+        logger.error(f"Exception in streaming audio analysis pipeline: {str(e)}", exc_info=True)
+        if session_id:
+            await analysis_streamer.send_error(session_id, f"Audio analysis error: {str(e)}")
+        raise Exception(f"Audio analysis pipeline error: {str(e)}")
+
+def audio_analysis_pipeline(audio_path: str) -> Dict[str, Any]:
+    """
+    Synchronous wrapper for the streaming audio analysis pipeline.
+    Maintains backward compatibility while using audio-first approach.
+    """
+    try:
+        # Run the async pipeline synchronously
+        import asyncio
+        return asyncio.run(streaming_audio_analysis_pipeline(audio_path, None))
+    except Exception as e:
+        logger.error(f"Exception in audio analysis pipeline: {str(e)}", exc_info=True)
+        raise Exception(f"Audio analysis pipeline error: {str(e)}")
+   

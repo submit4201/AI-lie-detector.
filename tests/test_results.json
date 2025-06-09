@@ -1,0 +1,176 @@
+{
+  "timestamp": "2025-06-08T19:54:37.562817",
+  "tests_run": 15,
+  "tests_passed": 1,
+  "tests_failed": 14,
+  "test_results": {
+    "backend_validation": {
+      "passed": 1,
+      "failed": 2,
+      "tests": {
+        "run_backend_validation_clean.py": {
+          "passed": true,
+          "output": ""
+        },
+        "test_complete_validation.py": {
+          "passed": false,
+          "output": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_complete_validation.py\", line 107, in <module>\n    test_default_structure_with_models()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"p:\\python\\New folder (2)\\tests\\test_complete_validation.py\", line 9, in test_default_structure_with_models\n    from backend.models import (\n    ...<4 lines>...\n    )\nModuleNotFoundError: No module named 'backend'\n"
+        },
+        "test_model_validation.py": {
+          "passed": false,
+          "output": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_model_validation.py\", line 8, in <module>\n    from backend.models import LinguisticAnalysis, RiskAssessment, GeminiSummary, SessionInsights, AudioQualityMetrics\nModuleNotFoundError: No module named 'backend'\n"
+        }
+      }
+    },
+    "api_tests": {
+      "passed": 0,
+      "failed": 3,
+      "tests": {
+        "simple_api_test.py": {
+          "passed": false,
+          "output": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\simple_api_test.py\", line 18, in test_api\n    print(\"\\U0001f680 Testing API...\")\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\submi\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\encodings\\cp1252.py\", line 19, in encode\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\n           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nUnicodeEncodeError: 'charmap' codec can..."
+        },
+        "test_api_data_flow_fixed.py": {
+          "passed": false,
+          "output": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_api_data_flow_fixed.py\", line 14, in test_api_upload\n    with open(audio_file_path, 'rb') as f:\n         ~~~~^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: 'test_audio.wav'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_api_data_flow_fixed.py\", line 47, in..."
+        },
+        "test_complete_integration.py": {
+          "passed": false,
+          "output": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_complete_integration.py\", line 133, in <module>\n    test_api_integration()\n    ~~~~~~~~~~~~~~~~~~~~^^\n  File \"p:\\python\\New folder (2)\\tests\\test_complete_integration.py\", line 26, in test_api_integration\n    print(\"\\U0001f9ea Testing Complete AI Lie Detector Integration\")\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\submi\\AppData\\Local\\Programs\\Python\\Pyt..."
+        }
+      }
+    },
+    "service_tests": {
+      "passed": 0,
+      "failed": 3,
+      "tests": {
+        "test_linguistic_service.py": {
+          "passed": false,
+          "output": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_linguistic_service.py\", line 62, in <module>\n    test_linguistic_service_directly()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"p:\\python\\New folder (2)\\tests\\test_linguistic_service.py\", line 24, in test_linguistic_service_directly\n    print(\"\\U0001f9e0 Testing Linguistic Analysis Service\")\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\submi\\AppData\\Local\\Progra..."
+        },
+        "test_enhanced_formality.py": {
+          "passed": false,
+          "output": "Exit code: 1\nSTDOUT:\n\nSTDERR:\n  File \"p:\\python\\New folder (2)\\tests\\test_enhanced_formality.py\", line 115\n    print(f\"   SCORE BREAKDOWN:\")\nIndentationError: unexpected indent\n"
+        },
+        "test_formality_final.py": {
+          "passed": false,
+          "output": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_formality_final.py\", line 10, in <module>\n    from services.linguistic_service import analyze_linguistic_patterns\nModuleNotFoundError: No module named 'services'\n"
+        }
+      }
+    },
+    "analysis_tests": {
+      "passed": 0,
+      "failed": 3,
+      "tests": {
+        "test_enhanced_analysis.py": {
+          "passed": false,
+          "output": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_enhanced_analysis.py\", line 11, in test_linguistic_analysis\n    with open(audio_file_path, 'rb') as audio_file:\n         ~~~~^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: 'p:/python/New folder (2)/5.wav'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_enha..."
+        },
+        "test_enhanced_patterns.py": {
+          "passed": false,
+          "output": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_enhanced_patterns.py\", line 90, in <module>\n    test_enhanced_patterns()\n    ~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"p:\\python\\New folder (2)\\tests\\test_enhanced_patterns.py\", line 47, in test_enhanced_patterns\n    print(f\"\\n\\U0001f9ea Testing: {test_case['name']}\")\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\submi\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\encodings\\cp1252..."
+        },
+        "test_direct_patterns.py": {
+          "passed": false,
+          "output": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_direct_patterns.py\", line 9, in <module>\n    from services.linguistic_service import analyze_linguistic_patterns\nModuleNotFoundError: No module named 'services'\n"
+        }
+      }
+    },
+    "session_tests": {
+      "passed": 0,
+      "failed": 2,
+      "tests": {
+        "test_e2e_session_insights.py": {
+          "passed": false,
+          "output": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_e2e_session_insights.py\", line 141, in <module>\n    test_session_insights_e2e()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"p:\\python\\New folder (2)\\tests\\test_e2e_session_insights.py\", line 15, in test_session_insights_e2e\n    print(\"\\U0001f9ea Starting End-to-End Session Insights Test\")\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\submi\\AppData\\Local\\Programs\\P..."
+        },
+        "test_real_transcript_insights.py": {
+          "passed": false,
+          "output": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_real_transcript_insights.py\", line 112, in <module>\n    test_session_insights_with_transcript()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"p:\\python\\New folder (2)\\tests\\test_real_transcript_insights.py\", line 19, in test_session_insights_with_transcript\n    print(\"\\U0001f9ea Testing Enhanced Session Insights with Real Transcript\")\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^..."
+        }
+      }
+    },
+    "streaming_tests": {
+      "passed": 0,
+      "failed": 1,
+      "tests": {
+        "test_real_audio_file.py": {
+          "passed": false,
+          "output": "Exit code: 1\nSTDOUT:\n============================================================\nTESTING COMPLETE BACKEND WORKFLOW WITH REAL AUDIO FILE\n============================================================\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_real_audio_file.py\", line 187, in <module>\n    success = test_complete_workflow()\n  File \"p:\\python\\New folder (2)\\tests\\test_real_audio_file.py\", line 27, in test_complete_workflow\n    print(f\"\\u2705 Audio file fo..."
+        }
+      }
+    }
+  },
+  "errors": [
+    {
+      "test": "test_complete_validation.py",
+      "category": "backend_validation",
+      "error": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_complete_validation.py\", line 107, in <module>\n    test_default_structure_with_models()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"p:\\python\\New folder (2)\\tests\\test_complete_validation.py\", line 9, in test_default_structure_with_models\n    from backend.models import (\n    ...<4 lines>...\n    )\nModuleNotFoundError: No module named 'backend'\n"
+    },
+    {
+      "test": "test_model_validation.py",
+      "category": "backend_validation",
+      "error": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_model_validation.py\", line 8, in <module>\n    from backend.models import LinguisticAnalysis, RiskAssessment, GeminiSummary, SessionInsights, AudioQualityMetrics\nModuleNotFoundError: No module named 'backend'\n"
+    },
+    {
+      "test": "simple_api_test.py",
+      "category": "api_tests",
+      "error": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\simple_api_test.py\", line 18, in test_api\n    print(\"\\U0001f680 Testing API...\")\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\submi\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\encodings\\cp1252.py\", line 19, in encode\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\n           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nUnicodeEncodeError: 'charmap' codec can't encode character '\\U0001f680' in position 0: character maps to <undefined>\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\simple_api_test.py\", line 50, in <module>\n    test_api()\n    ~~~~~~~~^^\n  File \"p:\\python\\New folder (2)\\tests\\simple_api_test.py\", line 47, in test_api\n    print(f\"\\u274c Error: {e}\")\n    ~~~~~^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\submi\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\encodings\\cp1252.py\", line 19, in encode\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\n           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nUnicodeEncodeError: 'charmap' codec can't encode character '\\u274c' in position 0: character maps to <undefined>\n"
+    },
+    {
+      "test": "test_api_data_flow_fixed.py",
+      "category": "api_tests",
+      "error": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_api_data_flow_fixed.py\", line 14, in test_api_upload\n    with open(audio_file_path, 'rb') as f:\n         ~~~~^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: 'test_audio.wav'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_api_data_flow_fixed.py\", line 47, in <module>\n    test_api_upload()\n    ~~~~~~~~~~~~~~~^^\n  File \"p:\\python\\New folder (2)\\tests\\test_api_data_flow_fixed.py\", line 43, in test_api_upload\n    print(f\"\\u274c Error: {e}\")\n    ~~~~~^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\submi\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\encodings\\cp1252.py\", line 19, in encode\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\n           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nUnicodeEncodeError: 'charmap' codec can't encode character '\\u274c' in position 0: character maps to <undefined>\n"
+    },
+    {
+      "test": "test_complete_integration.py",
+      "category": "api_tests",
+      "error": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_complete_integration.py\", line 133, in <module>\n    test_api_integration()\n    ~~~~~~~~~~~~~~~~~~~~^^\n  File \"p:\\python\\New folder (2)\\tests\\test_complete_integration.py\", line 26, in test_api_integration\n    print(\"\\U0001f9ea Testing Complete AI Lie Detector Integration\")\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\submi\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\encodings\\cp1252.py\", line 19, in encode\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\n           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nUnicodeEncodeError: 'charmap' codec can't encode character '\\U0001f9ea' in position 0: character maps to <undefined>\n"
+    },
+    {
+      "test": "test_linguistic_service.py",
+      "category": "service_tests",
+      "error": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_linguistic_service.py\", line 62, in <module>\n    test_linguistic_service_directly()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"p:\\python\\New folder (2)\\tests\\test_linguistic_service.py\", line 24, in test_linguistic_service_directly\n    print(\"\\U0001f9e0 Testing Linguistic Analysis Service\")\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\submi\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\encodings\\cp1252.py\", line 19, in encode\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\n           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nUnicodeEncodeError: 'charmap' codec can't encode character '\\U0001f9e0' in position 0: character maps to <undefined>\n"
+    },
+    {
+      "test": "test_enhanced_formality.py",
+      "category": "service_tests",
+      "error": "Exit code: 1\nSTDOUT:\n\nSTDERR:\n  File \"p:\\python\\New folder (2)\\tests\\test_enhanced_formality.py\", line 115\n    print(f\"   SCORE BREAKDOWN:\")\nIndentationError: unexpected indent\n"
+    },
+    {
+      "test": "test_formality_final.py",
+      "category": "service_tests",
+      "error": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_formality_final.py\", line 10, in <module>\n    from services.linguistic_service import analyze_linguistic_patterns\nModuleNotFoundError: No module named 'services'\n"
+    },
+    {
+      "test": "test_enhanced_analysis.py",
+      "category": "analysis_tests",
+      "error": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_enhanced_analysis.py\", line 11, in test_linguistic_analysis\n    with open(audio_file_path, 'rb') as audio_file:\n         ~~~~^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: 'p:/python/New folder (2)/5.wav'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_enhanced_analysis.py\", line 66, in <module>\n    test_linguistic_analysis()\n    ~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"p:\\python\\New folder (2)\\tests\\test_enhanced_analysis.py\", line 56, in test_linguistic_analysis\n    print(f\"\\u274c Test audio file not found: {audio_file_path}\")\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\submi\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\encodings\\cp1252.py\", line 19, in encode\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\n           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nUnicodeEncodeError: 'charmap' codec can't encode character '\\u274c' in position 0: character maps to <undefined>\n"
+    },
+    {
+      "test": "test_enhanced_patterns.py",
+      "category": "analysis_tests",
+      "error": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_enhanced_patterns.py\", line 90, in <module>\n    test_enhanced_patterns()\n    ~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"p:\\python\\New folder (2)\\tests\\test_enhanced_patterns.py\", line 47, in test_enhanced_patterns\n    print(f\"\\n\\U0001f9ea Testing: {test_case['name']}\")\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\submi\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\encodings\\cp1252.py\", line 19, in encode\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\n           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nUnicodeEncodeError: 'charmap' codec can't encode character '\\U0001f9ea' in position 2: character maps to <undefined>\n"
+    },
+    {
+      "test": "test_direct_patterns.py",
+      "category": "analysis_tests",
+      "error": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_direct_patterns.py\", line 9, in <module>\n    from services.linguistic_service import analyze_linguistic_patterns\nModuleNotFoundError: No module named 'services'\n"
+    },
+    {
+      "test": "test_e2e_session_insights.py",
+      "category": "session_tests",
+      "error": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_e2e_session_insights.py\", line 141, in <module>\n    test_session_insights_e2e()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"p:\\python\\New folder (2)\\tests\\test_e2e_session_insights.py\", line 15, in test_session_insights_e2e\n    print(\"\\U0001f9ea Starting End-to-End Session Insights Test\")\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\submi\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\encodings\\cp1252.py\", line 19, in encode\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\n           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nUnicodeEncodeError: 'charmap' codec can't encode character '\\U0001f9ea' in position 0: character maps to <undefined>\n"
+    },
+    {
+      "test": "test_real_transcript_insights.py",
+      "category": "session_tests",
+      "error": "Exit code: 1\nSTDOUT:\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_real_transcript_insights.py\", line 112, in <module>\n    test_session_insights_with_transcript()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"p:\\python\\New folder (2)\\tests\\test_real_transcript_insights.py\", line 19, in test_session_insights_with_transcript\n    print(\"\\U0001f9ea Testing Enhanced Session Insights with Real Transcript\")\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\submi\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\encodings\\cp1252.py\", line 19, in encode\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\n           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nUnicodeEncodeError: 'charmap' codec can't encode character '\\U0001f9ea' in position 0: character maps to <undefined>\n"
+    },
+    {
+      "test": "test_real_audio_file.py",
+      "category": "streaming_tests",
+      "error": "Exit code: 1\nSTDOUT:\n============================================================\nTESTING COMPLETE BACKEND WORKFLOW WITH REAL AUDIO FILE\n============================================================\n\nSTDERR:\nTraceback (most recent call last):\n  File \"p:\\python\\New folder (2)\\tests\\test_real_audio_file.py\", line 187, in <module>\n    success = test_complete_workflow()\n  File \"p:\\python\\New folder (2)\\tests\\test_real_audio_file.py\", line 27, in test_complete_workflow\n    print(f\"\\u2705 Audio file found: {audio_path.name} ({audio_path.stat().st_size / 1024 / 1024:.2f} MB)\")\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\submi\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\encodings\\cp1252.py\", line 19, in encode\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\n           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nUnicodeEncodeError: 'charmap' codec can't encode character '\\u2705' in position 0: character maps to <undefined>\n"
+    }
+  ]
+}

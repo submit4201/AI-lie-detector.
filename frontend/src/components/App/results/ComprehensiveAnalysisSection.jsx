@@ -56,10 +56,9 @@ const ProgressBar = ({ value, max = 100, color = "blue", label }) => (
 
 const ComprehensiveAnalysisSection = ({ result }) => {
   const [activeTab, setActiveTab] = useState('overview');
-
   if (!result || !result.linguistic_analysis) {
     return (
-      <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl">
+      <Card className="section-container analysis-breakdown">
         <CardContent className="p-6">
           <h3 className="text-xl font-semibold text-white mb-4">📊 Comprehensive Analysis</h3>
           <div className="bg-yellow-500/20 backdrop-blur-sm border border-yellow-400/30 rounded-lg p-4">
@@ -616,11 +615,10 @@ const ComprehensiveAnalysisSection = ({ result }) => {
       default: return renderOverviewTab();
     }
   };
-
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
-      <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl">
+      <Card className="section-container analysis-breakdown glow-purple">
         <CardContent className="p-6">
           <h3 className="text-xl font-semibold text-white mb-4">📊 Comprehensive Analysis Dashboard</h3>
           <div className="flex flex-wrap gap-2">

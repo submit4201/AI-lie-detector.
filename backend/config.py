@@ -6,7 +6,7 @@ from transformers import pipeline
 # and not hardcode it here, especially for production.
 # The fallback key "your_fallback_key_here_or_None" is a placeholder and should be replaced
 # or removed if you ensure the environment variable is always set.
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyB5KbPaVXPYkUeShTEE82fgpZiLiLl7YyM") # Replace with a secure fallback or None
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCRe8eG8OoVY4pWJcemBS5LK92p1a3aZMc") # Replace with a secure fallback or None
 
 # Initialize the emotion classifier pipeline
 # This makes it available for import in other modules, ensuring it's loaded once.
@@ -23,9 +23,9 @@ except Exception as e:
     print("Emotion analysis will not be available. Ensure the model is accessible and transformers library is correctly installed.")
     EMOTION_CLASSIFIER = None
 
-if not GEMINI_API_KEY or GEMINI_API_KEY == "AIzaSyB5KbPaVXPYkUeShTEE82fgpZiLiLl7YyM": # Check against the specific placeholder
+if not GEMINI_API_KEY: # Check if API key is set
     # Log this warning appropriately in a real application
-    print("Warning: GEMINI_API_KEY is not set or is using the default placeholder. Gemini API calls may fail.")
+    print("Warning: GEMINI_API_KEY is not set. Gemini API calls may fail.")
 
 # Note on top_k vs return_all_scores:
 # In Hugging Face pipelines, if return_all_scores=True, it returns scores for all classes.
