@@ -294,5 +294,9 @@ def extract_linguistic_features_from_data(audio_data: bytes, sample_rate: int, c
 def extract_features_from_data(audio_data: bytes, sample_rate: int, channels: int) -> Dict[str, Any]:
     """Extracts features from in-memory audio data."""
     acoustic = extract_acoustic_features_from_data(audio_data, sample_rate, channels)
-    linguistic = extract_linguistic_features_from_data(audio_data, sample_rate) # Whisper handles mono
+    start_time = 0.0  # Default start time
+    end_time = 10.0  # Default end time, replace with actual duration if available
+    linguistic = extract_linguistic_features_from_data(
+        audio_data, sample_rate, channels, start_time, end_time, TRANSCRIPTION_SEG_WITH_TIMESTAMPS
+    )  # Whisper handles mono
     return {**acoustic, **linguistic}
