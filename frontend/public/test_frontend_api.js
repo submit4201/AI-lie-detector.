@@ -1,4 +1,5 @@
 // Test frontend API call simulation
+// Use a browser-compatible way to set the API URL
 const API_URL = 'http://localhost:8001';
 
 async function testFrontendAPICall() {

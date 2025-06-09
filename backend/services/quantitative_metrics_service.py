@@ -99,7 +99,7 @@ class QuantitativeMetricsService:
 
         return QuantitativeMetrics(
             talk_to_listen_ratio=talk_ratio,
-            speaker_turn_duration_avg=round(avg_turn_duration, 2),
+            speaker_turn_duration_avg_seconds=avg_turn_duration,
             interruptions_count=interruptions,
             sentiment_trend=simulated_sentiment_trend,
             word_count=word_count,

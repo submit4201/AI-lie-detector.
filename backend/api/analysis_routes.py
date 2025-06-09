@@ -41,6 +41,10 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
     """WebSocket endpoint for real-time analysis updates"""
     await analysis_streamer.connect(websocket, session_id)
     try:
+        ping_interval = 20  # seconds
+        timeout = 30  # seconds
+        last_pong = asyncio.get_event_loop().time()
+
         while True:
             await websocket.receive_text() # Keep connection alive
     except WebSocketDisconnect:
@@ -77,7 +81,7 @@ async def stream_analyze_audio(
             temp_audio_path = temp_file.name
         
         return StreamingResponse(
-            stream_analysis_pipeline(temp_audio_path, current_session_id),
+            stream_analysis_pipeline(temp_audio_path, current_session_id, session_context_data),
             media_type="text/event-stream",
             headers={
                 "Cache-Control": "no-cache", "Connection": "keep-alive",

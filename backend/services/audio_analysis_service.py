@@ -79,10 +79,23 @@ class AudioAnalysisService:
             else: clarity = 0.3
         
         return AudioAnalysis(
-            speech_clarity_score=clarity,
-            background_noise_level=noise,
-            speech_rate_wpm=wpm,
-            pauses_and_fillers=pauses_data,
-            intonation_patterns=intonation,
-            audio_quality_assessment=quality
+            speech_clarity_score=clarity_score,
+            speech_clarity_analysis="Fallback: Inferred from text presence.",
+            background_noise_assessment="Low (fallback assumption)",
+            background_noise_analysis="Fallback: No specific background noise analysis from text.",
+            average_speech_rate_wpm=wpm,
+            speech_rate_variability_analysis="Fallback: Not analyzed from text.",
+            intonation_patterns_analysis="Fallback: Not analyzed from text.",
+            overall_audio_quality_assessment=quality_assessment,
+            audio_duration_seconds=audio_duration_seconds,
+            # Most other fields will use their defaults (None, "Analysis not available", [])
+            # as they are hard to infer meaningfully from just text in a simple fallback.
+            loudness_analysis="Fallback: Analysis not available.",
+            signal_to_noise_ratio_analysis="Fallback: Analysis not available.",
+            pitch_profile_analysis="Fallback: Analysis not available.",
+            voice_timbre_description="Fallback: Analysis not available.",
+            vocal_effort_assessment="Fallback: Analysis not available.",
+            acoustic_event_analysis="Fallback: Analysis not available.",
+            pause_characteristics_analysis="Fallback: Inferred from text if possible, otherwise not available.",
+            vocal_stress_indicators_acoustic_analysis="Fallback: Analysis not available."
         )

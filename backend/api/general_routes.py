@@ -1,5 +1,5 @@
-from fastapi import APIRouter
-from models import AnalyzeResponse
+from fastapi import APIRouter, Depends, HTTPException, Path, WebSocket, WebSocketDisconnect
+from backend.models import AnalyzeResponse
 import time
 import os
 from datetime import datetime
@@ -17,83 +17,6 @@ async def root():
     # If app instance is not easily available here, a static message or version from elsewhere is fine.
     # For simplicity, returning a static message. If version is needed, it might require passing app or config.
     return {"message": "AI Lie Detector API is running"}
-
-@router.get(
-    "/health",
-    tags=["General"],
-    summary="Detailed Health Check",
-    description="Comprehensive health check with system status and service availability."
-)
-async def health_check():
-    """Detailed health check endpoint with system information"""
-    try:
-        # Get current timestamp
-        current_time = datetime.now().isoformat()
-        
-        # Basic system info
-        health_data = {
-            "status": "healthy",
-            "timestamp": current_time,
-            "uptime": time.time(),  # Process uptime approximation
-            "service": "AI Lie Detector API",
-            "version": "1.0.0",
-            "environment": os.getenv("ENVIRONMENT", "development"),
-        }
-          # Check if we can import key services
-        services_status = {}
-        
-        try:
-            from services.gemini_service import query_gemini, validate_and_structure_gemini_response
-            services_status["gemini_service"] = "available"
-        except Exception as e:
-            services_status["gemini_service"] = f"error: {str(e)}"
-        
-        try:
-            from services.audio_service import assess_audio_quality, streaming_audio_analysis_pipeline
-            services_status["audio_service"] = "available"
-        except Exception as e:
-            services_status["audio_service"] = f"error: {str(e)}"
-        
-        try:
-            from services.session_service import conversation_history_service
-            services_status["session_service"] = "available"
-        except Exception as e:
-            services_status["session_service"] = f"error: {str(e)}"
-        
-        try:
-            from services.streaming_service import analysis_streamer, stream_analysis_pipeline
-            services_status["streaming_service"] = "available"
-        except Exception as e:
-            services_status["streaming_service"] = f"error: {str(e)}"
-        
-        health_data["services"] = services_status
-        
-        # Check environment variables
-        env_status = {
-            "gemini_api_key": "configured" if os.getenv("GEMINI_API_KEY") else "missing",
-            "cors_origins": "configured" if os.getenv("CORS_ORIGINS") else "default",
-        }
-        health_data["environment_variables"] = env_status
-        
-        # Determine overall health
-        service_errors = [status for status in services_status.values() if status.startswith("error")]
-        if service_errors or not os.getenv("GEMINI_API_KEY"):
-            health_data["status"] = "degraded"
-            health_data["warnings"] = []
-            if service_errors:
-                health_data["warnings"].append(f"Service errors: {len(service_errors)} services have issues")
-            if not os.getenv("GEMINI_API_KEY"):
-                health_data["warnings"].append("GEMINI_API_KEY not configured")
-        
-        return health_data
-        
-    except Exception as e:
-        return {
-            "status": "unhealthy",
-            "timestamp": datetime.now().isoformat(),
-            "error": str(e),
-            "service": "AI Lie Detector API"
-        }
 
 @router.get("/test-structured-output", response_model=AnalyzeResponse, tags=["Testing"])
 async def test_structured_output():

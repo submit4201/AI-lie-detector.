@@ -40,12 +40,7 @@ class AnalysisStreamer:
     async def send_analysis_update(self, session_id: str, analysis_type: str, data: Any):
         if session_id in self.active_connections:
             try:
-                if hasattr(data, 'model_dump') and callable(data.model_dump): # Pydantic v2
-                    payload_data = data.model_dump()
-                elif hasattr(data, 'dict') and callable(data.dict): # Pydantic v1
-                    payload_data = data.dict()
-                else:
-                    payload_data = data
+                payload_data = serialize_data(data)
                 message = {"type": "analysis_update", "analysis_type": analysis_type, "data": payload_data}
                 await self.active_connections[session_id].send_text(json.dumps(message))
                 logger.debug(f"Sent {analysis_type} update to session {session_id}")
