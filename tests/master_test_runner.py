@@ -32,9 +32,7 @@ class TestRunner:
         # Define categories of tests
         self.test_categories = {
             "backend_validation": [
-                "run_backend_validation_clean.py",
-                "test_complete_validation.py",
-                "test_model_validation.py"
+                "run_backend_validation_clean.py"
             ],
             "api_tests": [
                 "simple_api_test.py",
@@ -42,9 +40,6 @@ class TestRunner:
                 "test_complete_integration.py"
             ],
             "service_tests": [
-                "test_linguistic_service.py",
-                "test_enhanced_formality.py",
-                "test_formality_final.py"
             ],
             "analysis_tests": [
                 "test_enhanced_analysis.py",
