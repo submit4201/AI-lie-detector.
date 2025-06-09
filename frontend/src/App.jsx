@@ -39,7 +39,6 @@ export default function App() {
     () => sessionId,
     hookCreateNewSession
   );
-
   const {
     result,
     updateAnalysisResult,
@@ -52,10 +51,13 @@ export default function App() {
 
   // Streaming analysis hook
   const {
-    isConnected,
+    isStreaming,
     streamingProgress,
-    partialResults,
+    streamingStep,
     streamingError,
+    partialResults,
+    lastReceivedComponent,
+    componentsReceived,
     startStreamingAnalysis,
     resetStreamingState,
   } = useStreamingAnalysis(sessionId);
@@ -71,14 +73,20 @@ export default function App() {
       loadSessionHistory(sessionId);
     }
   }, [sessionId, loadSessionHistory]);
-
   // Effect to handle streaming analysis partial results
   useEffect(() => {
     if (partialResults && Object.keys(partialResults).length > 0) {
       // Update the analysis result with partial results as they come in
       updateAnalysisResult(partialResults);
+      
+      // If this looks like a complete result (has transcript and credibility_score), 
+      // load session history after a delay
+      if (sessionId && partialResults.transcript && partialResults.credibility_score !== undefined) {
+        console.log('Streaming analysis appears complete, loading session history');
+        setTimeout(() => loadSessionHistory(sessionId), 1500);
+      }
     }
-  }, [partialResults, updateAnalysisResult]);
+  }, [partialResults, updateAnalysisResult, sessionId, loadSessionHistory]);
 
   // Modified handleUpload to use streaming analysis when enabled
   const appHandleUpload = useCallback(async (fileToUpload) => {
@@ -92,28 +100,31 @@ export default function App() {
         return;
       }
       setFile(fileToUpload);
-    }
-
-    // Choose between streaming and traditional analysis
+    }    // Choose between streaming and traditional analysis
     if (useStreaming && sessionId) {
       console.log('Using streaming analysis...');
       resetStreamingState(); // Clear previous streaming state
-      const success = await startStreamingAnalysis(file || fileToUpload);
-      if (!success) {
+      const finalResult = await startStreamingAnalysis(file || fileToUpload);
+      if (!finalResult) {
         console.log('Streaming analysis failed, falling back to traditional analysis');
         // Fall back to traditional analysis
         const analysisData = await hookHandleUpload();
         if (analysisData) {
           updateAnalysisResult(analysisData);
           if (sessionId) {
-            loadSessionHistory(sessionId);
+            // Wait a moment for backend to save session data, then load history
+            setTimeout(() => loadSessionHistory(sessionId), 1000);
           }
-        }
-      } else {
-        // Streaming analysis started successfully
-        // Results will be handled by the useEffect for partialResults
+        }      } else {
+        // Streaming analysis completed successfully
+        console.log('Streaming analysis completed, updating results and loading session history');
+        // Wait a moment for streaming state to update, then set final results
+        setTimeout(() => {
+          updateAnalysisResult(finalResult);
+        }, 100);
         if (sessionId) {
-          loadSessionHistory(sessionId);
+          // Wait a moment for backend to save session data, then load history
+          setTimeout(() => loadSessionHistory(sessionId), 1000);
         }
       }
     } else {
@@ -122,7 +133,8 @@ export default function App() {
       if (analysisData) {
         updateAnalysisResult(analysisData);
         if (sessionId) {
-          loadSessionHistory(sessionId);
+          // Wait a moment for backend to save session data, then load history
+          setTimeout(() => loadSessionHistory(sessionId), 1000);
         }
       }
     }
@@ -200,7 +212,7 @@ export default function App() {
           updateAnalysisResult={updateAnalysisResult}
           useStreaming={useStreaming}
           setUseStreaming={setUseStreaming}
-          isStreamingConnected={isConnected}
+          isStreamingConnected={isStreaming}
           streamingProgress={streamingProgress}
         />        <ResultsDisplay
           analysisResults={result}
@@ -210,9 +222,11 @@ export default function App() {
           formatConfidenceLevel={formatConfidenceLevel}
           sessionHistory={sessionHistory}
           sessionId={sessionId}
-          isStreaming={useStreaming}
-          streamingProgress={streamingProgress}
+          isStreaming={isStreaming}
+          streamingProgress={streamingStep}
           partialResults={partialResults}
+          lastReceivedComponent={lastReceivedComponent}
+          componentsReceived={componentsReceived}
           isLoading={loading}
         />
       </div>
