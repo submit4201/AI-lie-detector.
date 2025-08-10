@@ -6,7 +6,7 @@ from transformers import pipeline
 # and not hardcode it here, especially for production.
 # The fallback key "your_fallback_key_here_or_None" is a placeholder and should be replaced
 # or removed if you ensure the environment variable is always set.
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCRe8eG8OoVY4pWJcemBS5LK92p1a3aZMc") # Replace with a secure fallback or None
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # Initialize the emotion classifier pipeline
 # This makes it available for import in other modules, ensuring it's loaded once.
