@@ -4,7 +4,8 @@ Direct test of enhanced linguistic patterns
 """
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, backend_path)
 
 from backend.services.linguistic_service import analyze_linguistic_patterns
 
