@@ -4,10 +4,10 @@ Test enhanced formality scoring system with comprehensive patterns
 """
 
 import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
 
-from services.linguistic_service import analyze_linguistic_patterns
+from backend.services.linguistic_service import analyze_linguistic_patterns
 
 def test_enhanced_formality():
     """Test the enhanced formality scoring with various speech patterns"""
@@ -108,11 +108,11 @@ def test_enhanced_formality():
         formal_ratio = total_formal / max(word_count, 1)
         casual_ratio = casual_informal / max(word_count, 1)
         standard_ratio = standard_contractions / max(word_count, 1)
-        
+
         formal_points = formal_ratio * 500
         casual_penalty = casual_ratio * 250
         standard_penalty = standard_ratio * 100
-          print(f"   SCORE BREAKDOWN:")
+        print(f"   SCORE BREAKDOWN:")
         print(f"     • Baseline: +50.0 points")
         print(f"     • Formal boost: +{formal_points:.1f} points")
         print(f"     • Casual penalty: -{casual_penalty:.1f} points")
@@ -144,3 +144,4 @@ def test_enhanced_formality():
 if __name__ == "__main__":
     test_enhanced_formality()
     print("[PASS] Enhanced formality analysis complete!")
+

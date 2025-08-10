@@ -2,10 +2,10 @@
 Test the linguistic analysis service directly with sample text
 """
 import sys
-import os
-sys.path.append('p:/python/New folder (2)/backend')
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
 
-from services.linguistic_service import analyze_linguistic_patterns
+from backend.services.linguistic_service import analyze_linguistic_patterns
 
 def test_linguistic_service_directly():
     """Test the linguistic analysis service with sample text"""
