@@ -11,7 +11,7 @@ from pathlib import Path
 
 # Configuration
 BACKEND_URL = "http://localhost:8000"
-AUDIO_FILE_PATH = r"H:\New folder\PAPAPAPEAPA\Documents\Videos\Deceptive\trial_lie_002.mp3"
+AUDIO_FILE_PATH = "tests/test_extras/test_audio.mp3"
 
 def test_complete_workflow():
     print("=" * 60)
