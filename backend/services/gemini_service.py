@@ -8,8 +8,8 @@ from typing import Dict, Any, Optional, List
 import httpx # Added
 import json # Ensure json is imported for JSONDecodeError
 
-from config import GEMINI_API_KEY
-from .json_utils import parse_gemini_response, safe_json_parse, create_fallback_response, extract_text_from_gemini_response
+from backend.config import GEMINI_API_KEY
+from backend.services.json_utils import parse_gemini_response, safe_json_parse, create_fallback_response, extract_text_from_gemini_response
 
 from backend.models import (
     ManipulationAssessment, ArgumentAnalysis, SpeakerAttitude, EnhancedUnderstanding,
