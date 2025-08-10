@@ -9,8 +9,7 @@ def test_default_structure_with_models():
     from backend.models import (
         LinguisticAnalysis, RiskAssessment, GeminiSummary, 
         SessionInsights, ManipulationAssessment, ArgumentAnalysis,
-        SpeakerAttitude, EnhancedUnderstanding, AudioAnalysis,
-        QuantitativeMetrics
+        SpeakerAttitude, EnhancedUnderstanding, AudioAnalysis, InteractionMetrics
     )
     from pydantic import ValidationError
     
@@ -75,6 +74,12 @@ def test_default_structure_with_models():
             "behavioral_evolution": "Analysis not available", 
             "risk_trajectory": "Analysis not available",
             "conversation_dynamics": "Analysis not available"
+        },
+        'interaction_metrics': {
+            "talk_to_listen_ratio": None,
+            "speaker_turn_duration_avg_seconds": None,
+            "interruptions_count": None,
+            "sentiment_trend": []
         }
     }
     
@@ -84,6 +89,7 @@ def test_default_structure_with_models():
         (LinguisticAnalysis, default_structure['linguistic_analysis'], "LinguisticAnalysis"),
         (RiskAssessment, default_structure['risk_assessment'], "RiskAssessment"),
         (SessionInsights, default_structure['session_insights'], "SessionInsights"),
+        (InteractionMetrics, default_structure['interaction_metrics'], "InteractionMetrics"),
     ]
     
     for model_class, default_data, model_name in test_models:
@@ -105,3 +111,4 @@ def test_default_structure_with_models():
 
 if __name__ == "__main__":
     test_default_structure_with_models()
+
