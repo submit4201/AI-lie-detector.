@@ -4,9 +4,11 @@ Direct test of enhanced linguistic patterns
 """
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
 
-from services.linguistic_service import analyze_linguistic_patterns
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../backend')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from backend.services.linguistic_service import analyze_linguistic_patterns
 
 def test_patterns():
     test_cases = [
@@ -57,3 +59,4 @@ def test_patterns():
 
 if __name__ == "__main__":
     test_patterns()
+
