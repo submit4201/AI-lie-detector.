@@ -11,21 +11,21 @@ class AudioQualityMetrics(BaseModel):
     channels: int = Field(default=0, description="Number of audio channels.")
     loudness: float = Field(default=0.0, description="Loudness of the audio in dBFS.")
     quality_score: int = Field(default=0, description="Overall quality score (0-100).")
-    overall_quality: str = Field(default="Good", description="Overall quality assessment (e.g., \'Good\', \'Fair\', \'Poor\').")
+    overall_quality: str = Field(default="Good", description="Overall quality assessment (e.g., 'Good', 'Fair', 'Poor').")
     signal_to_noise_ratio: float = Field(default=0.0, description="Signal to noise ratio.")
     clarity_score: float = Field(default=50.0, description="Audio clarity score (0-100).")
     volume_consistency: float = Field(default=50.0, description="Volume consistency score (0-100).")
     background_noise_level: float = Field(default=0.0, description="Background noise level assessment.")
 
 class EmotionScore(BaseModel):
-    label: str = Field(default="", description="Emotion label (e.g., \'anger\', \'joy\').")
+    label: str = Field(default="", description="Emotion label (e.g., 'anger', 'joy').")
     score: float = Field(default=0.0, description="Confidence score for the emotion (0.0-1.0).")
 
 class NumericalLinguisticMetrics(BaseModel):
     word_count: int = Field(default=0, description="Total number of words in the transcript.")
     unique_word_count: int = Field(default=0, description="Total number of unique words in the transcript.")
     hesitation_marker_count: int = Field(default=0, description="Number of common hesitation markers (e.g., um, uh, er, ah).")
-    filler_word_count: int = Field(default=0, description="Number of common filler words (e.g., like, you know, basically).") # Differentiated from hesitation markers
+    filler_word_count: int = Field(default=0, description="Number of common filler words (e.g., like, you know, basically).")  # Differentiated from hesitation markers
     qualifier_count: int = Field(default=0, description="Number of uncertainty qualifiers (e.g., maybe, perhaps, might, sort of, kind of).")
     certainty_indicator_count: int = Field(default=0, description="Number of certainty indicators (e.g., definitely, absolutely, sure, clearly).")
     repetition_count: int = Field(default=0, description="Number of significant word or phrase repetitions detected.")
@@ -62,8 +62,8 @@ class LinguisticAnalysis(BaseModel):
     confidence_metric_analysis: str = Field(default="Confidence metric analysis not available.", description="LLM interpretation of the calculated confidence metric ratio.")
     formality_score_analysis: str = Field(default="Formality score analysis not available.", description="LLM interpretation of the calculated formality score.")
     complexity_score_analysis: str = Field(default="Complexity score analysis not available.", description="LLM interpretation of the calculated complexity score.")
-    pause_occurrence_analysis: str = Field(default="Pause analysis not available.", description="LLM analysis of pauses (based on transcript markers or audio silence detection) and their significance.") # Renamed from pause_analysis
-    overall_linguistic_style_summary: str = Field(default="Overall linguistic style summary not available.", description="LLM's comprehensive summary of linguistic patterns and their implications.") # Renamed from overall_linguistic_analysis
+    pause_occurrence_analysis: str = Field(default="Pause analysis not available.", description="LLM analysis of pauses (based on transcript markers or audio silence detection) and their significance.")  # Renamed from pause_analysis
+    overall_linguistic_style_summary: str = Field(default="Overall linguistic style summary not available.", description="LLM's comprehensive summary of linguistic patterns and their implications.")  # Renamed from overall_linguistic_analysis
 
 class RiskAssessment(BaseModel):
     overall_risk: str = Field(default="Risk assessment not available.", description="Overall risk level (low/medium/high).")
@@ -101,15 +101,15 @@ class EmotionDetail(BaseModel):
     timestamp_end: Optional[float] = None
 
 class PatternDetail(BaseModel):
-    pattern_type: str # e.g., "RepetitivePhrasing", "HesitationCluster"
+    pattern_type: str  # e.g., "RepetitivePhrasing", "HesitationCluster"
     description: str
     occurrences: int
     examples: List[str] = Field(default_factory=list)
-    significance_score: Optional[float] = None # 0-1 scale
+    significance_score: Optional[float] = None  # 0-1 scale
 
 class DialogueAct(BaseModel):
     speaker: str
-    act_type: str # e.g., "Question", "Statement", "Agreement", "Disagreement"
+    act_type: str  # e.g., "Question", "Statement", "Agreement", "Disagreement"
     text_segment: str
     timestamp_start: Optional[float] = None
     timestamp_end: Optional[float] = None
@@ -131,7 +131,8 @@ class ManipulationAssessment(BaseModel):
 
 class ArgumentAnalysis(BaseModel):
     arguments_present: bool = False
-    key_arguments: List[Dict[str, str]] = Field(default_factory=list, description="List of key arguments, e.g., {'claim': '...', 'evidence': '...'}.")
+    key_arguments: List[Dict[str, str]] = Field(default_factory=list, description="List of key arguments, e.g., {'claim': '...', 'evidence': '...'}."
+    )
     argument_strength: float = Field(default=0.0, description="Overall strength of arguments presented (0.0 to 1.0).")
     fallacies_detected: List[str] = Field(default_factory=list, description="List of logical fallacies detected.")
     argument_summary: str = Field(default="Analysis not available.", description="Summary of the arguments.")
@@ -140,7 +141,8 @@ class ArgumentAnalysis(BaseModel):
 
 class SpeakerAttitude(BaseModel):
     dominant_attitude: str = Field(default="Neutral", description="Dominant attitude of the speaker.")
-    attitude_scores: Dict[str, float] = Field(default_factory=dict, description="Scores for various attitudes, e.g., {'respectful': 0.8}.")
+    attitude_scores: Dict[str, float] = Field(default_factory=dict, description="Scores for various attitudes, e.g., {'respectful': 0.8}."
+    )
     respect_level: str = Field(default="Neutral", description="Assessed level of respect.")
     respect_level_score: float = Field(default=0.0, description="Numerical score for respect level (0.0 to 1.0).")
     respect_level_score_analysis: str = Field(default="Analysis not available.", description="Analysis of the respect level score.")
@@ -160,7 +162,7 @@ class EnhancedUnderstanding(BaseModel):
     areas_of_evasiveness: List[str] = Field(default_factory=list, description="Topics or questions the speaker seemed to avoid.")
     suggested_follow_up_questions: List[str] = Field(default_factory=list, description="Suggested questions to ask for clarity or further probing.")
     unverified_claims: List[str] = Field(default_factory=list, description="Claims made by the speaker that may require fact-checking.")
-    #new fields for enhanced understanding
+    # new fields for enhanced understanding
     key_inconsistencies_analysis: str = Field(default="Key inconsistencies analysis not available.", description="Analysis of each key inconsistency and its implications.")
     areas_of_evasiveness_analysis: str = Field(default="Areas of evasiveness analysis not available.", description="Analysis of each area of evasiveness and its implications.")
     suggested_follow_up_questions_analysis: str = Field(default="Suggested follow-up questions analysis not available.", description="Analysis of each suggested follow-up question and its potential impact.")
@@ -170,23 +172,23 @@ class EnhancedUnderstanding(BaseModel):
 
 class PsychologicalAnalysis(BaseModel):
     emotional_state: str = Field(default="Neutral", description="Overall emotional state inferred.")
-    emotional_state_analysis: str = Field(default="Analysis not available.", description="Detailed analysis of the inferred emotional state.") # Added
+    emotional_state_analysis: str = Field(default="Analysis not available.", description="Detailed analysis of the inferred emotional state.")  # Added
     cognitive_load: str = Field(default="Normal", description="Inferred cognitive load (e.g., Low, Normal, High).")
-    cognitive_load_analysis: str = Field(default="Analysis not available.", description="Detailed analysis of the inferred cognitive load.") # Added
+    cognitive_load_analysis: str = Field(default="Analysis not available.", description="Detailed analysis of the inferred cognitive load.")  # Added
     stress_level: float = Field(default=0.0, description="Inferred stress level (0.0 to 1.0).")
     stress_level_analysis: str = Field(default="Analysis not available.", description="Detailed analysis of the inferred stress level.")
     confidence_level: float = Field(default=0.0, description="Inferred confidence level (0.0 to 1.0).")
-    confidence_level_analysis: str = Field(default="Analysis not available.", description="Detailed analysis of the inferred confidence level.") # Added
+    confidence_level_analysis: str = Field(default="Analysis not available.", description="Detailed analysis of the inferred confidence level.")  # Added
     psychological_summary: str = Field(default="Analysis not available.", description="Summary of the psychological state analysis.")
     potential_biases: List[str] = Field(default_factory=list, description="Identified potential cognitive biases.")
-    potential_biases_analysis: str = Field(default="Analysis not available.", description="Detailed analysis of the identified potential cognitive biases and their possible impact.") # Added
+    potential_biases_analysis: str = Field(default="Analysis not available.", description="Detailed analysis of the identified potential cognitive biases and their possible impact.")  # Added
 
 class SessionInsights(BaseModel):
     consistency_analysis: str = Field(default="Consistency analysis not available.", description="Analysis of consistency patterns across session interactions.")
     behavioral_evolution: str = Field(default="Behavioral evolution analysis not available.", description="How speaker behavior has evolved throughout the session.")
     risk_trajectory: str = Field(default="Risk trajectory analysis not available.", description="Trend analysis of risk levels across the session.")
     conversation_dynamics: str = Field(default="Conversation dynamics analysis not available.", description="Analysis of conversation flow and interaction patterns.")
-    #new fields for session insights
+    # new fields for session insights
     consistency_analysis_analysis: str = Field(default="Consistency analysis details not available.", description="Analysis of the consistency analysis and its implications.")
     behavioral_evolution_analysis: str = Field(default="Behavioral evolution details not available.", description="Analysis of the behavioral evolution and its implications.")
     risk_trajectory_analysis: str = Field(default="Risk trajectory details not available.", description="Analysis of the risk trajectory and its implications.")
@@ -195,7 +197,7 @@ class SessionInsights(BaseModel):
     overall_session_analysis: str = Field(default="Overall session analysis not available.", description="Overall analysis of the session insights.")
     trust_building_indicators: str = Field(default="Trust building indicators analysis not available.", description="Analysis of trust-building indicators in the conversation.")
     concern_escalation: str = Field(default="Concern escalation analysis not available.", description="Analysis of concern escalation patterns in the conversation.")
-    
+
 
 class AudioAnalysis(BaseModel):
     # Existing fields, some refined for clarity and with added analysis fields
@@ -236,17 +238,22 @@ class AudioAnalysis(BaseModel):
     vocal_stress_indicators_acoustic_analysis: Optional[str] = Field(default="Analysis not available.", description="Explanation of the acoustically identified vocal stress indicators.")
 
 
-class InteractionMetrics(BaseModel): # Renamed from QuantitativeMetrics
-    talk_to_listen_ratio: Optional[float] = Field(default=None, description="Ratio of talking time for a primary speaker to total speaking time or to other speakers' time. Context-dependent.")
-    speaker_turn_duration_avg_seconds: Optional[float] = Field(default=None, description="Average duration of speaker turns in seconds, if speaker diarization is available.")
-    interruptions_count: Optional[int] = Field(default=None, description="Number of interruptions detected, typically requiring diarization or explicit markers.")
-    sentiment_trend: List[Dict[str, Any]] = Field(default_factory=list, description="Trend of sentiment over time or segments, e.g., [{'segment': 'opening', 'sentiment_score': 0.7, 'sentiment_label': 'positive'}].")
+class InteractionMetrics(BaseModel):  # Renamed from QuantitativeMetrics
+    talk_to_listen_ratio: Optional[float] = Field(default=None, description="Ratio of talking time for a primary speaker to total speaking time or to other speakers' time. Context-dependent."
+    )
+    speaker_turn_duration_avg_seconds: Optional[float] = Field(default=None, description="Average duration of speaker turns in seconds, if speaker diarization is available."
+    )
+    interruptions_count: Optional[int] = Field(default=None, description="Number of interruptions detected, typically requiring diarization or explicit markers."
+    )
+    sentiment_trend: List[Dict[str, Any]] = Field(default_factory=list, description="Trend of sentiment over time or segments, e.g., [{'segment': 'opening', 'sentiment_score': 0.7, 'sentiment_label': 'positive'}]."
+    )
     # Removed word_count and vocabulary_richness_score as they are in NumericalLinguisticMetrics
 
 class ConversationFlow(BaseModel):
     engagement_level: str = Field(default="Medium", description="Overall engagement level (e.g., Low, Medium, High).")
     topic_coherence_score: float = Field(default=0.0, description="Coherence of topics discussed (0.0 to 1.0).")
-    conversation_dominance: Dict[str, float] = Field(default_factory=dict, description="Speaker dominance, e.g., {'speaker_A': 0.6, 'speaker_B': 0.4}.")
+    conversation_dominance: Dict[str, float] = Field(default_factory=dict, description="Speaker dominance, e.g., {'speaker_A': 0.6, 'speaker_B': 0.4}."
+    )
     turn_taking_efficiency: str = Field(default="Analysis not available.", description="Assessment of turn-taking efficiency.")
     conversation_phase: str = Field(default="Analysis not available.", description="Current phase of conversation (e.g., Opening, Development, Closing).")
     flow_disruptions: List[str] = Field(default_factory=list, description="Identified disruptions in conversation flow.")
@@ -265,11 +272,11 @@ class AnalyzeResponse(BaseModel):
     summary: str = "Analysis not available."
     alerts: List[str] = Field(default_factory=list)
     patterns_identified: List[PatternDetail] = Field(default_factory=list)
-    numerical_linguistic_metrics: Optional[NumericalLinguisticMetrics] = None # Added
+    numerical_linguistic_metrics: Optional[NumericalLinguisticMetrics] = None  # Added
     dialogue_acts: List[DialogueAct] = Field(default_factory=list)
     speaker_diarization: List[SpeakerSegment] = Field(default_factory=list)
     confidence_score: float = Field(default=0.0, description="Overall confidence in the analysis results.")
-    version: str = "2.1.0" # Updated version due to significant model changes
+    version: str = "2.1.0"  # Updated version due to significant model changes
 
     # Modularized analysis components
     manipulation_assessment: Optional[ManipulationAssessment] = None
@@ -278,8 +285,8 @@ class AnalyzeResponse(BaseModel):
     enhanced_understanding: Optional[EnhancedUnderstanding] = None
     psychological_analysis: Optional[PsychologicalAnalysis] = None
     audio_analysis: Optional[AudioAnalysis] = None
-    interaction_metrics: Optional[InteractionMetrics] = None # Updated from quantitative_metrics
-    linguistic_analysis: Optional[LinguisticAnalysis] = None # Ensure this is added if it wasn't explicitly part of AnalyzeResponse before
+    interaction_metrics: Optional[InteractionMetrics] = None  # Updated from quantitative_metrics
+    linguistic_analysis: Optional[LinguisticAnalysis] = None  # Ensure this is added if it wasn't explicitly part of AnalyzeResponse before
     conversation_flow: Optional[ConversationFlow] = None
 
 class ProgressUpdate(BaseModel):
@@ -290,10 +297,10 @@ class ProgressUpdate(BaseModel):
 
 class AnalyzeStreamResponse(BaseModel):
     event_type: str  # e.g., "full_response", "interim_transcript", "analysis_update", "error", "progress_update"
-    data: Optional[Any] = None # Can be AnalyzeResponse, str (for transcript), or specific analysis model
+    data: Optional[Any] = None  # Can be AnalyzeResponse, str (for transcript), or specific analysis model
     session_id: Optional[str] = None
     error_message: Optional[str] = None
-    progress: Optional[ProgressUpdate] = None # For granular progress updates
+    progress: Optional[ProgressUpdate] = None  # For granular progress updates
 
 class StreamInput(BaseModel):
     session_id: str
@@ -303,15 +310,15 @@ class StreamInput(BaseModel):
 class SessionCreateRequest(BaseModel):
     user_id: Optional[str] = None
     session_name: Optional[str] = None
-    initial_audio_path: Optional[str] = None # Path to pre-existing audio
-    initial_transcript_path: Optional[str] = None # Path to pre-existing transcript
-    configuration: Optional[Dict[str, Any]] = None # e.g., specific analyses to run
+    initial_audio_path: Optional[str] = None  # Path to pre-existing audio
+    initial_transcript_path: Optional[str] = None  # Path to pre-existing transcript
+    configuration: Optional[Dict[str, Any]] = None  # e.g., specific analyses to run
 
 class SessionCreateResponse(BaseModel):
     session_id: str
     status: SessionStatus
     message: str
-    created_at: str # ISO format timestamp
+    created_at: str  # ISO format timestamp
 
 class SessionUpdateRequest(BaseModel):
     status: Optional[SessionStatus] = None
@@ -321,7 +328,7 @@ class SessionUpdateResponse(BaseModel):
     session_id: str
     status: SessionStatus
     message: str
-    updated_at: str # ISO format timestamp
+    updated_at: str  # ISO format timestamp
 
 class SessionResponse(BaseModel):
     session_id: str
@@ -331,7 +338,7 @@ class SessionResponse(BaseModel):
     created_at: str
     updated_at: Optional[str] = None
     # Potentially links to results or full analysis data if small
-    analysis_summary: Optional[Dict[str, Any]] = None # A brief overview
+    analysis_summary: Optional[Dict[str, Any]] = None  # A brief overview
 
 class SessionListItem(BaseModel):
     session_id: str
@@ -339,17 +346,27 @@ class SessionListItem(BaseModel):
     status: SessionStatus
     created_at: str
 
-class SessionInsightsInput(BaseModel): # This is for multi-session analysis
+class SessionInsightsInput(BaseModel):  # This is for multi-session analysis
     session_ids: List[str]
-    insight_types: Optional[List[str]] = None # e.g., ["sentiment_trend", "topic_comparison"]
+    insight_types: Optional[List[str]] = None  # e.g., ["sentiment_trend", "topic_comparison"]
 
-class SessionInsight(BaseModel): # This is for multi-session analysis
+class SessionInsight(BaseModel):  # This is for multi-session analysis
     insight_type: str
-    data: Any # Could be charts, tables, text summaries
+    data: Any  # Could be charts, tables, text summaries
     description: Optional[str] = None
 
-class SessionInsightsResponse(BaseModel): # This is for multi-session analysis
+class SessionInsightsResponse(BaseModel):  # This is for multi-session analysis
     requested_session_ids: List[str]
     insights: List[SessionInsight] = Field(default_factory=list)
     summary_across_sessions: Optional[str] = None
+
+class GeminiSummary(BaseModel):
+    tone: str = Field(default="Analysis not available", description="Description of the speaker's tone.")
+    motivation: str = Field(default="Analysis not available", description="Analysis of the speaker's potential motivation.")
+    credibility: str = Field(default="Analysis not available", description="Assessment of the speaker's credibility based on content and delivery.")
+    emotional_state: str = Field(default="Analysis not available", description="Description of the speaker's emotional state.")
+    communication_style: str = Field(default="Analysis not available", description="Analysis of the speaker's communication style.")
+    key_concerns: str = Field(default="Analysis not available", description="Key concerns raised by the analysis.")
+    strengths: str = Field(default="Analysis not available", description="Strengths of the speaker's communication.")
+
 

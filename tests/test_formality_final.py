@@ -4,10 +4,10 @@ Test enhanced formality scoring system with comprehensive patterns
 """
 
 import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
 
-from services.linguistic_service import analyze_linguistic_patterns
+from backend.services.linguistic_service import analyze_linguistic_patterns
 
 def test_enhanced_formality():
     """Test the enhanced formality scoring with various speech patterns"""

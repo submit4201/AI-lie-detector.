@@ -7,8 +7,8 @@ import logging
 import json
 from typing import Dict, Any, Optional, Tuple
 
-from ..models import NumericalLinguisticMetrics, LinguisticAnalysis
-from ..services.gemini_service import GeminiService
+from backend.models import NumericalLinguisticMetrics, LinguisticAnalysis
+from backend.services.gemini_service import GeminiService
 
 logger = logging.getLogger(__name__)
 

@@ -8,13 +8,13 @@ from typing import Dict, Any, Optional, List
 import httpx # Added
 import json # Ensure json is imported for JSONDecodeError
 
-from config import GEMINI_API_KEY
-from .json_utils import parse_gemini_response, safe_json_parse, create_fallback_response, extract_text_from_gemini_response
+from backend.config import GEMINI_API_KEY
+from backend.services.json_utils import parse_gemini_response, safe_json_parse, create_fallback_response, extract_text_from_gemini_response
 
 from backend.models import (
     ManipulationAssessment, ArgumentAnalysis, SpeakerAttitude, EnhancedUnderstanding,
-    PsychologicalAnalysis, AudioAnalysis, QuantitativeMetrics, ConversationFlow,
-    EmotionDetail, LinguisticAnalysis # Make sure these are the correct model names from models.py
+    PsychologicalAnalysis, AudioAnalysis, InteractionMetrics, ConversationFlow,
+    EmotionDetail, LinguisticAnalysis
 )
 from backend.services.manipulation_service import ManipulationService
 from backend.services.argument_service import ArgumentService
@@ -22,7 +22,7 @@ from backend.services.speaker_attitude_service import SpeakerAttitudeService
 from backend.services.enhanced_understanding_service import EnhancedUnderstandingService
 from backend.services.psychological_service import PsychologicalService
 from backend.services.audio_analysis_service import AudioAnalysisService
-from backend.services.quantitative_metrics_service import QuantitativeMetricsService
+from backend.services.interaction_metrics_service import InteractionMetricsService
 from backend.services.conversation_flow_service import ConversationFlowService
 from backend.services.linguistic_service import analyze_linguistic_patterns
 
@@ -1352,7 +1352,7 @@ async def full_audio_analysis_pipeline(
         "enhanced_understanding": results.get("enhanced_understanding"),
         "psychological_analysis": results.get("psychological_analysis"),
         "audio_analysis": results.get("audio_analysis"),
-        "quantitative_metrics": results.get("quantitative_metrics"),
+        "interaction_metrics": results.get("interaction_metrics"),
         "conversation_flow": results.get("conversation_flow"),
         "emotion_analysis": results.get("emotion_analysis", []),
         "linguistic_analysis": results.get("linguistic_analysis", {})
