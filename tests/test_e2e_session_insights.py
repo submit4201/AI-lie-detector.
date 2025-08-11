@@ -9,7 +9,7 @@ import json
 
 # Test configuration
 BACKEND_URL = "http://localhost:8001"
-TEST_AUDIO_FILE = "h:/New folder/PAPAPAPEAPA/Documents/Videos/Deceptive/trial_lie_009.mp3"
+TEST_AUDIO_FILE = "tests/test_extras/Recording.wav"
 
 def test_session_insights_e2e():
     print("[TEST] Starting End-to-End Session Insights Test")

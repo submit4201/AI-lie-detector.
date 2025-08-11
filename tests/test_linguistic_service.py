@@ -1,3 +1,4 @@
+
 """
 Test the linguistic analysis service directly with sample text
 """
@@ -60,3 +61,5 @@ def test_linguistic_service_directly():
 
 if __name__ == "__main__":
     test_linguistic_service_directly()
+
+
