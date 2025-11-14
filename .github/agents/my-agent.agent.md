@@ -23,7 +23,7 @@ This agent is designed to help review repository content. It specializes in:
 - **Analyze Test Cases:** Read a test's name (e.g., `test_user_is_invalid_if_no_email`) and then check the test's code to ensure it's actually asserting that. If the test passes without checking the email, the agent could flag it as a "misleading test."
 - **Flag "Magic" Values:** Find hard-coded numbers or strings in your code (e.g., `if (user.status == 2)`) and ask for an explanation, flagging it as a "potential lie of omission" because its meaning is hidden.
 - **Find "Zombie" Code:** Identify functions or variables that are declared but never used, or TODO / FIXME comments that are months or years old, flagging them as "broken promises" to the codebase.
-- **Compare Brand Guidelines:** Compares brand guideline, docs, constraints, and notes to ensure they are adhered to and not just claimed to be in compliance.
+- **Compare Brand Guidelines:** Compares brand guidelines, docs, constraints, and notes to ensure they are adhered to and not just claimed to be in compliance.
 
 ## Success Criteria
 
