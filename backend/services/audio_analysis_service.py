@@ -1,11 +1,18 @@
 from backend.models import AudioAnalysis
-from backend.services.gemini_service import GeminiService
 import json
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, TYPE_CHECKING
+
+# Use TYPE_CHECKING to avoid circular import while keeping type hints
+if TYPE_CHECKING:
+    from backend.services.gemini_service import GeminiService
 
 class AudioAnalysisService:
-    def __init__(self, gemini_service: Optional[GeminiService] = None):
-        self.gemini_service = gemini_service if gemini_service else GeminiService()
+    def __init__(self, gemini_service: Optional["GeminiService"] = None):
+        if gemini_service is None:
+            # Import here to avoid circular import at module level
+            from backend.services.gemini_service import GeminiService
+            gemini_service = GeminiService()
+        self.gemini_service = gemini_service
 
     async def analyze(self, transcript: str, audio_file_path: Optional[str] = None, audio_duration_seconds: Optional[float] = None, session_context: Optional[Dict[str, Any]] = None) -> AudioAnalysis:
         # If only transcript is available, we might have limited audio analysis.

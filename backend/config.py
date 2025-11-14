@@ -1,5 +1,9 @@
 import os
+import logging
 from transformers import pipeline
+
+# Set up logging for config module
+logger = logging.getLogger(__name__)
 
 # Gemini API Key Configuration
 # IMPORTANT: It's highly recommended to set your actual API key as an environment variable
@@ -10,22 +14,28 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # Initialize the emotion classifier pipeline
 # This makes it available for import in other modules, ensuring it's loaded once.
+# Note: EMOTION_CLASSIFIER may be None if offline mode is enabled or initialization fails.
+# Code using EMOTION_CLASSIFIER should check for None before calling it.
 try:
-    EMOTION_CLASSIFIER = pipeline(
-        "text-classification",
-        model="j-hartmann/emotion-english-distilroberta-base",
-        top_k=7, # Changed from return_all_scores=True to top_k=7 as per main.py
-        return_all_scores=True # Kept return_all_scores as it was in main.py, top_k might be redundant if all scores are returned
-    )
+    # Set transformers to offline mode if TRANSFORMERS_OFFLINE environment variable is set
+    # This prevents long waits when trying to download models without internet access
+    if os.environ.get('TRANSFORMERS_OFFLINE', '0') == '1':
+        logger.info("TRANSFORMERS_OFFLINE is set, skipping emotion classifier initialization.")
+        EMOTION_CLASSIFIER = None
+    else:
+        EMOTION_CLASSIFIER = pipeline(
+            "text-classification",
+            model="j-hartmann/emotion-english-distilroberta-base",
+            top_k=7, # Changed from return_all_scores=True to top_k=7 as per main.py
+            return_all_scores=True # Kept return_all_scores as it was in main.py, top_k might be redundant if all scores are returned
+        )
 except Exception as e:
-    # Log this error appropriately in a real application
-    print(f"Error initializing Hugging Face emotion classifier: {e}")
-    print("Emotion analysis will not be available. Ensure the model is accessible and transformers library is correctly installed.")
+    logger.error(f"Error initializing Hugging Face emotion classifier: {e}")
+    logger.warning("Emotion analysis will not be available. Ensure the model is accessible and transformers library is correctly installed.")
     EMOTION_CLASSIFIER = None
 
 if not GEMINI_API_KEY: # Check if API key is set
-    # Log this warning appropriately in a real application
-    print("Warning: GEMINI_API_KEY is not set. Gemini API calls may fail.")
+    logger.warning("GEMINI_API_KEY is not set. Gemini API calls may fail.")
 
 # Note on top_k vs return_all_scores:
 # In Hugging Face pipelines, if return_all_scores=True, it returns scores for all classes.
