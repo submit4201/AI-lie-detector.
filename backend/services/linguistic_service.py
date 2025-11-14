@@ -333,6 +333,9 @@ async def linguistic_analysis_pipeline(
         logger.error(f"Exception in linguistic_analysis_pipeline: {e}", exc_info=True)
         return get_default_numerical_linguistic_metrics(), get_default_linguistic_analysis_interpretation()
 
+# Constant for descriptive field placeholder messages
+_SYNC_MODE_NOT_AVAILABLE = "analysis not available in synchronous mode."
+
 def analyze_linguistic_patterns(transcript: str, duration: Optional[float] = None) -> Dict[str, Any]:
     """
     Legacy synchronous function for linguistic pattern analysis.
@@ -377,10 +380,10 @@ def analyze_linguistic_patterns(transcript: str, duration: Optional[float] = Non
         "confidence_ratio": numerical_metrics.get("confidence_metric_ratio"),
         
         # Add default descriptive fields (these would normally come from LLM interpretation)
-        "speech_patterns": "Speech patterns analysis not available in synchronous mode.",
-        "word_choice": "Word choice analysis not available in synchronous mode.",
-        "emotional_consistency": "Emotional consistency analysis not available in synchronous mode.",
-        "detail_level": "Detail level analysis not available in synchronous mode.",
+        "speech_patterns": f"Speech patterns {_SYNC_MODE_NOT_AVAILABLE}",
+        "word_choice": f"Word choice {_SYNC_MODE_NOT_AVAILABLE}",
+        "emotional_consistency": f"Emotional consistency {_SYNC_MODE_NOT_AVAILABLE}",
+        "detail_level": f"Detail level {_SYNC_MODE_NOT_AVAILABLE}",
     }
     
     return result
