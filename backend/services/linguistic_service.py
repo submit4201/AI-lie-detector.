@@ -332,3 +332,55 @@ async def linguistic_analysis_pipeline(
     except Exception as e:
         logger.error(f"Exception in linguistic_analysis_pipeline: {e}", exc_info=True)
         return get_default_numerical_linguistic_metrics(), get_default_linguistic_analysis_interpretation()
+
+def analyze_linguistic_patterns(transcript: str, duration: Optional[float] = None) -> Dict[str, Any]:
+    """
+    Legacy synchronous function for linguistic pattern analysis.
+    Returns a flat dictionary with both numerical metrics and default descriptive fields.
+    This function is provided for backward compatibility with existing tests and code.
+    
+    For new code, prefer using:
+    - analyze_numerical_linguistic_metrics() for just the numerical data
+    - linguistic_analysis_pipeline() for full analysis with LLM interpretation
+    
+    Args:
+        transcript (str): The transcribed text to analyze.
+        duration (float, optional): Audio duration in seconds for rate calculations.
+    
+    Returns:
+        Dict containing numerical linguistic metrics and default descriptive fields.
+    """
+    # Get numerical metrics
+    numerical_metrics = analyze_numerical_linguistic_metrics(transcript, duration)
+    
+    # In the legacy implementation, "hesitation_count" included both hesitation markers
+    # (um, uh, er, ah) AND filler words (like, you know, well, etc.)
+    # This maintains backward compatibility with existing tests
+    hesitation_marker_count = numerical_metrics.get("hesitation_marker_count", 0)
+    filler_word_count = numerical_metrics.get("filler_word_count", 0)
+    combined_hesitation_count = hesitation_marker_count + filler_word_count
+    
+    # Map keys for backward compatibility
+    result = {
+        # Map new keys to old expected keys
+        "word_count": numerical_metrics.get("word_count", 0),
+        "hesitation_count": combined_hesitation_count,  # Combined for backward compatibility
+        "qualifier_count": numerical_metrics.get("qualifier_count", 0),
+        "certainty_count": numerical_metrics.get("certainty_indicator_count", 0),
+        "filler_count": numerical_metrics.get("filler_word_count", 0),
+        "repetition_count": numerical_metrics.get("repetition_count", 0),
+        "formality_score": numerical_metrics.get("formality_score_calculated", 0.0),
+        "complexity_score": numerical_metrics.get("complexity_score_calculated", 0.0),
+        "avg_word_length": numerical_metrics.get("avg_word_length_chars", 0.0),
+        "avg_words_per_sentence": numerical_metrics.get("avg_sentence_length_words", 0.0),
+        "speech_rate_wpm": numerical_metrics.get("speech_rate_wpm"),
+        "confidence_ratio": numerical_metrics.get("confidence_metric_ratio"),
+        
+        # Add default descriptive fields (these would normally come from LLM interpretation)
+        "speech_patterns": "Speech patterns analysis not available in synchronous mode.",
+        "word_choice": "Word choice analysis not available in synchronous mode.",
+        "emotional_consistency": "Emotional consistency analysis not available in synchronous mode.",
+        "detail_level": "Detail level analysis not available in synchronous mode.",
+    }
+    
+    return result
