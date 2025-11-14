@@ -1,15 +1,22 @@
 # backend/services/psychological_service.py
 import logging
 import json
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, TYPE_CHECKING
 from backend.models import PsychologicalAnalysis # Ensure this import is correct
-from backend.services.gemini_service import GeminiService
+
+# Use TYPE_CHECKING to avoid circular import while keeping type hints
+if TYPE_CHECKING:
+    from backend.services.gemini_service import GeminiService
 
 logger = logging.getLogger(__name__)
 
 class PsychologicalService:
-    def __init__(self, gemini_service: Optional[GeminiService] = None): # Added Optional and default
-        self.gemini_service = gemini_service if gemini_service else GeminiService()
+    def __init__(self, gemini_service: Optional["GeminiService"] = None): # Added Optional and default
+        if gemini_service is None:
+            # Import here to avoid circular import at module level
+            from backend.services.gemini_service import GeminiService
+            gemini_service = GeminiService()
+        self.gemini_service = gemini_service
 
     def _fallback_analysis(self, transcript_snippet: str) -> PsychologicalAnalysis:
         logger.warning(f"PsychologicalService: LLM call failed or returned malformed data for transcript snippet: {transcript_snippet}. Falling back to default.")

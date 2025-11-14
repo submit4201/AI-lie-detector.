@@ -22,9 +22,9 @@ from backend.services.speaker_attitude_service import SpeakerAttitudeService
 from backend.services.enhanced_understanding_service import EnhancedUnderstandingService
 from backend.services.psychological_service import PsychologicalService
 from backend.services.audio_analysis_service import AudioAnalysisService
-from backend.services.interaction_metrics_service import InteractionMetricsService
+# from backend.services.interaction_metrics_service import InteractionMetricsService # File does not exist
 from backend.services.conversation_flow_service import ConversationFlowService
-from backend.services.linguistic_service import analyze_linguistic_patterns
+# from backend.services.linguistic_service import analyze_linguistic_patterns # Causes circular import - import locally where needed
 
 logger = logging.getLogger(__name__)
 
@@ -1271,7 +1271,7 @@ class GeminiService:
 
 from backend.models import (
     ManipulationAssessment, ArgumentAnalysis, SpeakerAttitude, EnhancedUnderstanding,
-    PsychologicalAnalysis, AudioAnalysis, QuantitativeMetrics, ConversationFlow,
+    PsychologicalAnalysis, AudioAnalysis, InteractionMetrics, ConversationFlow,
     EmotionDetail, LinguisticAnalysis # Make sure these are the correct model names
 )
 from backend.services.manipulation_service import ManipulationService
@@ -1282,7 +1282,7 @@ from backend.services.psychological_service import PsychologicalService
 from backend.services.audio_analysis_service import AudioAnalysisService
 from backend.services.quantitative_metrics_service import QuantitativeMetricsService
 from backend.services.conversation_flow_service import ConversationFlowService
-from backend.services.linguistic_service import analyze_linguistic_patterns
+# from backend.services.linguistic_service import analyze_linguistic_patterns # Causes circular import - import locally where needed
 # transcribe_with_gemini and analyze_emotions_with_gemini should be defined in this file or imported.
 # Assuming they are defined later in this file as per previous context.
 
@@ -1317,6 +1317,9 @@ async def full_audio_analysis_pipeline(
         except Exception as e:
             logger.error(f"Transcription failed: {e}", exc_info=True)
             transcript_text = "Transcription failed." # Fallback
+
+    # Import locally to avoid circular import at module level
+    from backend.services.linguistic_service import analyze_linguistic_patterns
 
     analysis_tasks = {
         "manipulation_assessment": manipulation_service.analyze(transcript_text, session_context),

@@ -11,12 +11,19 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 # Initialize the emotion classifier pipeline
 # This makes it available for import in other modules, ensuring it's loaded once.
 try:
-    EMOTION_CLASSIFIER = pipeline(
-        "text-classification",
-        model="j-hartmann/emotion-english-distilroberta-base",
-        top_k=7, # Changed from return_all_scores=True to top_k=7 as per main.py
-        return_all_scores=True # Kept return_all_scores as it was in main.py, top_k might be redundant if all scores are returned
-    )
+    # Set transformers to offline mode if TRANSFORMERS_OFFLINE environment variable is set
+    # This prevents long waits when trying to download models without internet access
+    import os as _os
+    if _os.environ.get('TRANSFORMERS_OFFLINE', '0') == '1':
+        print("TRANSFORMERS_OFFLINE is set, skipping emotion classifier initialization.")
+        EMOTION_CLASSIFIER = None
+    else:
+        EMOTION_CLASSIFIER = pipeline(
+            "text-classification",
+            model="j-hartmann/emotion-english-distilroberta-base",
+            top_k=7, # Changed from return_all_scores=True to top_k=7 as per main.py
+            return_all_scores=True # Kept return_all_scores as it was in main.py, top_k might be redundant if all scores are returned
+        )
 except Exception as e:
     # Log this error appropriately in a real application
     print(f"Error initializing Hugging Face emotion classifier: {e}")

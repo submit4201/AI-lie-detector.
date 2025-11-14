@@ -1,15 +1,22 @@
 # backend/services/argument_service.py
 import logging
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, TYPE_CHECKING
 from backend.models import ArgumentAnalysis
-from backend.services.gemini_service import GeminiService # Assuming GeminiService will be here or accessible
 import json
+
+# Use TYPE_CHECKING to avoid circular import while keeping type hints
+if TYPE_CHECKING:
+    from backend.services.gemini_service import GeminiService
 
 logger = logging.getLogger(__name__)
 
 class ArgumentService:
-    def __init__(self, gemini_service: Optional[GeminiService] = None):
-        self.gemini_service = gemini_service if gemini_service else GeminiService()
+    def __init__(self, gemini_service: Optional["GeminiService"] = None):
+        if gemini_service is None:
+            # Import here to avoid circular import at module level
+            from backend.services.gemini_service import GeminiService
+            gemini_service = GeminiService()
+        self.gemini_service = gemini_service
 
     async def analyze(self, transcript: str, session_context: Optional[Dict[str, Any]] = None) -> ArgumentAnalysis:
         if not transcript:
