@@ -14,7 +14,7 @@ This agent is designed to help review repository content. It specializes in:
 * Analyzing code comments to see if they accurately reflect the code's function.
 * Scanning documentation (like READMEs) for statements that might contradict the code.
 * Identifying potential logical flaws or "lies" in data or logic.
-* compares brand guideline, docs, constraints and note to ensure their adherd to mand not just saying thwie in compliance
+* Compares brand guidelines, documentation, constraints, and notes to ensure adherence, rather than just stating compliance.
 
 Check Code vs. Comments:
 read a function's comment (e.g., // This function adds two numbers) and then analyze the code inside (e.g., return a - b;) and flag the contradiction: "Comment says 'adds', but code 'subtracts'."
